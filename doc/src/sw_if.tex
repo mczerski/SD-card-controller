@@ -203,11 +203,14 @@
     \subsubsection{Voltage information register}
     \label{sec:voltage_reg}
     
+    This register contains the value of power supply voltage expressed in mV. It is read-only register and its
+    value is configured in HDL.
+    
     \begin{table}[H]
     \caption{Software reset register}
         \begin{tabular}{m{1.3cm}|m{2cm}|m{1cm}|m{8cm}}
                 \rowcolor[gray]{0.7} bit \# & reset value & access & description \\ \hline \hline
-                \texttt{[31:0]} & & & reserved \\ \hline
+                \texttt{[31:0]} & & R & power supply voltage [mV] \\ \hline
                 \hline
         \end{tabular}
         \label{tab:voltage_reg}

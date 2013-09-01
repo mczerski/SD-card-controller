@@ -110,13 +110,7 @@ output reg cmd_int_rst;
 output reg [`BLKCNT_W-1:0]block_count_reg;
 output reg [31:0] dma_addr_reg;
 
-`ifdef SUPPLY_VOLTAGE_3_3
-parameter voltage_controll_reg  = 8'b0000_111_1;
-`elsif SUPPLY_VOLTAGE_3_0
-parameter voltage_controll_reg  = 8'b0000_110_1;
-`elsif SUPPLY_VOLTAGE_1_8
-parameter voltage_controll_reg  = 8'b0000_101_1;
-`endif 
+parameter voltage_controll_reg  = `SUPPLY_VOLTAGE_mV;
 parameter capabilies_reg = 16'b0000_0000_0000_0000;
 
 always @(posedge wb_clk_i or posedge wb_rst_i)

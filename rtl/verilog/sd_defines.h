@@ -97,6 +97,4 @@
 //wb module defines
 `define RESET_BLOCK_SIZE 512
 `define RESET_CLK_DIV 0
-`define SUPPLY_VOLTAGE_3_3
-//`define SUPPLY_VOLTAGE_3_0
-//`define SUPPLY_VOLTAGE_1_8
+`define SUPPLY_VOLTAGE_mV 3300
