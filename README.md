@@ -24,3 +24,22 @@ Documentation
 -------------
 
 The documentation is located in the doc/ directory.
+
+Examples
+--------
+
+A sample ORPSoC project that make use of this core is located at:
+
+https://github.com/mczerski/orpsoc-de0_nano
+
+The project is based on de0_nano board with custom made expansion board
+with SD Card connector.
+
+There is also u-boot project port for this board located at:
+
+https://github.com/mczerski/u-boot
+
+This u-boot project contains driver for Wishbone SD Card Controller IP Core
+and can be configured for de0_nano board (with custom made expansion board).
+
+
