@@ -54,4 +54,9 @@ https://github.com/mczerski/u-boot
 This u-boot project contains driver for Wishbone SD Card Controller IP Core
 and can be configured for de0_nano board (with custom made expansion board).
 
+Also in the plan is the driver for Linux. The initial work can be found at:
+
+https://bitbucket.org/rozpruwacz/linux-openrisc
+
+the driver is named ocsdc and is located in drivers/mmc/host directory.
 
