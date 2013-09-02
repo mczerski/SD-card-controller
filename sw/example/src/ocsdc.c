@@ -5,7 +5,7 @@
  *
  * This file is part of the WISHBONE SD Card
  * Controller IP Core project
- * http://www.opencores.org/cores/xxx/
+ * http://opencores.org/project,sd_card_controller
  *
  * Description
  * Driver for the WISHBONE SD Card Controller IP Core.

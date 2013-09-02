@@ -7,6 +7,18 @@ used in a System-on-Chip. IP core provides simple interface for any CPU with Wis
 bus. The communication between the MMC/SD card controller and MMC/SD card is performed
 according to the MMC/SD protocol.
 
+Introduction
+------------
+This core is based on the "sd card controller" project from 
+http://opencores.org/project,sdcard_mass_storage_controller 
+but has been largely rewritten. A lot of effort has been made 
+to make the core more generic and easily usable 
+with OSs like Linux. 
+- data transfer commands are not fixed 
+- data transfer block size is configurable 
+- multiple block transfer support 
+- R2 responses (136 bit) support
+
 Features
 --------
 

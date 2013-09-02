@@ -6,15 +6,15 @@
 ////                                                              ////
 //// This file is part of the WISHBONE SD Card                    ////
 //// Controller IP Core project                                   ////
-//// http://www.opencores.org/cores/xxx/                          ////
+//// http://opencores.org/project,sd_card_controller              ////
 ////                                                              ////
 //// Description                                                  ////
 //// Top level entity.                                            ////
-//// This core is based on SD Card IP core project from           ////
+//// This core is based on the "sd card controller" project from  ////
 //// http://opencores.org/project,sdcard_mass_storage_controller  ////
-//// and is a major rewrite of original work. Effort was put to   ////
-//// make the core more generic and be able to be used with       ////
-//// OS's like Linux.                                             ////
+//// but has been largely rewritten. A lot of effort has been     ////
+//// made to make the core more generic and easily usable         ////
+//// with OSs like Linux.                                         ////
 //// - data transfer commands are not fixed                       ////
 //// - data transfer block size is configurable                   ////
 //// - multiple block transfer support                            ////
