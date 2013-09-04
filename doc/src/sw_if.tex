@@ -310,8 +310,7 @@
     \subsubsection{Block size register}
     \label{sec:blocksize_reg}
     
-    This register controls the number of bytes to write/read in a single block. Data transaction will transmit number of bytes equal to value of this register times value
-    of \texttt{blkock\_count} register.
+    This register controls the number of bytes to write/read in a single block. Data transaction will transmit number of bytes equal to size of block times blocks count.
     
     \begin{table}[H]
     \caption{Block size register}
@@ -327,15 +326,18 @@
     \subsubsection{Block count register}
     \label{sec:blockcnt_reg}
     
-    This register controls the number of blocks to write/read in data transaction. Data transaction will transmit number of bytes equal to value of this register times value
-    of \texttt{blkock\_size} register.
+    This register controls the number of blocks to write/read in data transaction. Data transaction will transmit number of bytes equal to value blocks count times block size.
+    Register value is calculated by following formula:
+    \begin{equation}
+    REG = number\_of\_blocks - 1
+    \end{equation} 
     
     \begin{table}[H]
     \caption{Block count register}
         \begin{tabular}{m{1.3cm}|m{2cm}|m{1cm}|m{8cm}}
                 \rowcolor[gray]{0.7} bit \# & reset value & access & description \\ \hline \hline
-                \texttt{[31:12]} & & & reserved \\ \hline
-                \texttt{[11:0]} & \texttt{0x200} & RW & number of blocks in data transaction \\ \hline
+                \texttt{[31:16]} & & & reserved \\ \hline
+                \texttt{[15:0]} & \texttt{0x0} & RW & number of blocks in data transaction plus 1 \\ \hline
                 \hline
         \end{tabular}
         \label{tab:blockcnt_reg}
