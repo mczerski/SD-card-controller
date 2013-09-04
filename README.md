@@ -56,7 +56,17 @@ and can be configured for de0_nano board (with custom made expansion board).
 
 Also in the plan is the driver for Linux. The initial work can be found at:
 
-https://bitbucket.org/rozpruwacz/linux-openrisc
+https://github.com/mczerski/linux - de0_nano branch
 
 the driver is named ocsdc and is located in drivers/mmc/host directory.
+
+TODO:
+-----
+
+- top level testbench cleanup (sd_controller_top_tb.sv)
+- rx/tx fifo treshold to do block transfers rather than many signle word transfers
+- maybe one fifo rathen than two fifos (rx and tx) would suffice since the transfer 
+	between card and controller is always half-duplex
+- read only and card detect signals support
+- timeout watchdog for data transfers
 
