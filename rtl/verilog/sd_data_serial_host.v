@@ -248,8 +248,10 @@ begin: FSM_OUT
                             data_in[29-(data_send_index[2:0]<<2)], 
                             data_in[28-(data_send_index[2:0]<<2)]
                             };
-                        if (data_send_index[2:0] == 3'h7) begin
+                        if (data_send_index[2:0] == 3'h5/*not 7 - read delay !!!*/) begin
                             rd <= 1;
+                        end
+                        if (data_send_index[2:0] == 3'h7) begin
                             data_send_index <= 0;
                         end
                         else
@@ -258,8 +260,10 @@ begin: FSM_OUT
                     else begin
                         last_din <= {3'h7, data_in[31-data_send_index]};
                         crc_in <= {3'h7, data_in[31-data_send_index]};
-                        if (data_send_index == 31) begin
+                        if (data_send_index == 29/*not 31 - read delay !!!*/) begin
                             rd <= 1;
+                        end
+                        if (data_send_index == 31) begin
                             data_send_index <= 0;
                         end
                         else

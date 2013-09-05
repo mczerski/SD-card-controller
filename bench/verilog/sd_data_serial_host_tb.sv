@@ -270,14 +270,19 @@ task check_fifo_read;
             wait (rd == 1);
             #(SD_TCLK/2);
             assert(rd == 1);
+            //read delay !!!
+            #(2*SD_TCLK);
             data_in = fifo_send_data[1%$size(fifo_send_data)];
             for (i=2; i<cycles+1; i++) begin
                 for (j=0; j<32/width-1; j++) begin
                     #SD_TCLK;
-                    assert(rd == 0);
+                    if (j == 32/width-3)
+                        assert(rd == 1);
+                    else
+                        assert(rd == 0);
                 end
                 #SD_TCLK;
-                assert(rd == 1);
+                assert(rd == 0);
                 data_in = fifo_send_data[i%$size(fifo_send_data)];
             end
             #SD_TCLK;
