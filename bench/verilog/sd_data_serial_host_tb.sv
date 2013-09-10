@@ -67,6 +67,7 @@ reg [`BLKSIZE_W-1:0] blksize;
 reg bus_4bit;
 reg [`BLKCNT_W-1:0] blkcnt;
 reg [1:0] start;
+reg [1:0] byte_alignment;
 wire sd_data_busy;
 wire busy;
 wire crc_ok;
@@ -145,9 +146,26 @@ task sd_card_send;
     end
 endtask
 
+function integer align_words_to_sd;
+    input integer first_word;
+    input integer second_word;
+    input integer alignment;
+    integer i, bitval, tmp;
+    begin
+        tmp = 0;
+        for (i=31; i>=0; i--) begin
+            bitval = i >= 8*alignment ? first_word >> (i - 8*alignment) : second_word >> (i+(32-8*alignment));
+            bitval = bitval & 1;
+            tmp += (bitval << i);
+        end
+        align_words_to_sd = tmp;
+    end
+endfunction
+
 task sd_card_receive;
     input integer bytes;
     input integer blocks;
+    input integer alignment;
     input integer width;
     input [2:0] crc_status;
     integer cycles;
@@ -157,9 +175,11 @@ task sd_card_receive;
     integer shift;
     integer crc[0:3];
     integer crc_in[0:3];
+    integer aligned_data;
     //reg [3:0] crc_out;
     begin
         assert(width == 1 || width == 4) else $stop;
+        assert(alignment < 4) else $stop;
         cycles = bytes*8/width;
         
         while(blocks+1) begin
@@ -179,7 +199,9 @@ task sd_card_receive;
                 assert(DAT_oe_o == 1);
                 if ((i*width)%32 == (32-width)) begin
                     data_idx = (i*width/32)%$size(fifo_send_data);
-                    assert(fifo_send_data[data_idx] == received_data);
+                    aligned_data = align_words_to_sd(fifo_send_data[data_idx], fifo_send_data[(data_idx+1)%$size(fifo_send_data)], alignment);
+                    //$display("aligned %x, r %x", aligned_data, received_data);
+                    assert(aligned_data == received_data);
                 end
                 for (j=0; j<width; j++)
                     crc[j] = crc16(crc[j], DAT_dat_o[j]);
@@ -231,37 +253,68 @@ task sd_card_receive;
     end
 endtask
 
+function integer align_words_to_wb;
+    input integer first_word;
+    input integer second_word;
+    input integer alignment;
+    integer i, bitval, tmp;
+    begin
+        tmp = 0;
+        for (i=31; i>=0; i--) begin
+            bitval = i >= 32-8*alignment ? first_word >> (i - (32-8*alignment)) : second_word >> (i+8*alignment);
+            bitval = bitval & 1;
+            tmp += (bitval << i);
+        end
+        align_words_to_wb = tmp;
+    end
+endfunction
+
 task check_single_write;
     input integer bytes;
+    input integer rx_alignment;
+    input integer verif_alignment;
     input integer index;
-    integer mask;
+    integer aligned_mask, bytes_mask, mask;
+    integer aligned_data;
     begin
         case (bytes) 
-            1: mask = 32'hff000000;
-            2: mask = 32'hffff0000;
-            3: mask = 32'hffffff00;
-            4: mask = 32'hffffffff;
+            1: bytes_mask = 32'hff000000;
+            2: bytes_mask = 32'hffff0000;
+            3: bytes_mask = 32'hffffff00;
+            4: bytes_mask = 32'hffffffff;
         endcase
-        assert((data_out & mask) == (fifo_receive_data[index] & mask));
+        case (rx_alignment)
+            0: aligned_mask = 32'hffffffff;
+            1: aligned_mask = 32'h00ffffff;
+            2: aligned_mask = 32'h0000ffff;
+            3: aligned_mask = 32'h000000ff;
+        endcase
+        mask = aligned_mask & bytes_mask;
+        aligned_data = align_words_to_wb(fifo_receive_data[(index+$size(fifo_send_data)-1)%$size(fifo_send_data)], fifo_receive_data[index], verif_alignment);
+        //$display("masks %x, r %x, a %x", mask, data_out, aligned_data);
+        assert((data_out & mask) == (aligned_data & mask));
     end
 endtask
 
 task check_fifo_write;
     input integer bytes;
     input integer blocks;
+    input integer alignment;
     input integer width;
     integer cycles, i, j;
     begin
         assert(width == 1 || width == 4) else $stop;
+        assert(alignment < 4) else $stop;
+        bytes += alignment;
         cycles = bytes/4;
         while (blocks+1) begin
             wait (we == 1);
             #(SD_TCLK/2);
             //if cycles == 0 it means less than 4 bytes to send
             if (cycles)
-                check_single_write(4, 0);
+                check_single_write(4, alignment, alignment, 0);
             else
-                check_single_write(bytes, 0);
+                check_single_write(bytes, alignment, alignment, 0);
                 
             for (i=1; i<cycles; i++) begin
                 for (j=0; j<32/width-1; j++) begin
@@ -270,7 +323,7 @@ task check_fifo_write;
                 end
                 #SD_TCLK;
                 assert(we == 1);
-                check_single_write(4, i%$size(fifo_receive_data));
+                check_single_write(4, 0, alignment, i%$size(fifo_receive_data));
             end
             
             //handle the case when bytes is not a multiple of 4 and more than 4
@@ -281,7 +334,7 @@ task check_fifo_write;
                 end
                 #SD_TCLK;
                 assert(we == 1);
-                check_single_write((bytes % 4), cycles%$size(fifo_receive_data));
+                check_single_write((bytes % 4), 0, alignment, cycles%$size(fifo_receive_data));
             end
             
             blocks--;
@@ -293,10 +346,12 @@ endtask
 task check_fifo_read;
     input integer bytes;
     input integer blocks;
+    input integer alignment;
     input integer width;
     integer cycles, i, j;
     begin
         assert(width == 1 || width == 4) else $stop;
+        bytes += alignment;
         cycles = bytes/4;
         while (bytes >= 4 && blocks+1) begin
             wait (rd == 1);
@@ -305,6 +360,7 @@ task check_fifo_read;
             //read delay !!!
             #(2*SD_TCLK);
             data_in = fifo_send_data[1%$size(fifo_send_data)];
+            //$display("data_in %x", data_in);
             for (i=2; i<cycles+1; i++) begin
                 for (j=0; j<32/width-1; j++) begin
                     #SD_TCLK;
@@ -316,8 +372,9 @@ task check_fifo_read;
                 #SD_TCLK;
                 assert(rd == 0);
                 data_in = fifo_send_data[i%$size(fifo_send_data)];
+                //$display("data_in %x", data_in);
             end
-            #SD_TCLK;
+            #(((bytes % 4)*8/width + 1)*SD_TCLK);
             assert(rd == 0);
             data_in = fifo_send_data[0];
             blocks--;
@@ -328,15 +385,21 @@ endtask
 task read_test;
     input integer bsize;
     input integer bcnt;
+    input integer alignment;
     input integer b_4bit;
     input bit crc_failure;
     begin
+	rst = 1;
+        #(2*SD_TCLK);
+        rst = 0;
         blksize = bsize;
         blkcnt = bcnt;
+        byte_alignment = alignment;
         bus_4bit = b_4bit;
         start = 2; //read
         #SD_TCLK;
         blksize = 0;
+        byte_alignment = 0;
         bus_4bit = 0;
         blkcnt = 0;
         start = 0;
@@ -346,7 +409,7 @@ task read_test;
         
         fork
             sd_card_send(bsize, crc_failure ? 0 : bcnt, b_4bit ? 4 : 1, crc_failure);
-            check_fifo_write(bsize, crc_failure ? 0 : bcnt, b_4bit ? 4 : 1);
+            check_fifo_write(bsize, crc_failure ? 0 : bcnt, alignment, b_4bit ? 4 : 1);
         join
         
         #SD_TCLK;
@@ -357,23 +420,29 @@ endtask
 task write_test;
     input integer bsize;
     input integer bcnt;
+    input integer alignment;
     input integer b_4bit;
     input bit crc_failure;
     begin
+	rst = 1;
+        #(2*SD_TCLK);
+        rst = 0;
         blksize = bsize;
         blkcnt = bcnt;
+        byte_alignment = alignment;
         bus_4bit = b_4bit;
         start = 1; //write
         #SD_TCLK;
         blksize = 0;
+        byte_alignment = 0;
         bus_4bit = 0;
         blkcnt = 0;
         start = 0;
         assert(busy == 1);
         
         fork
-            check_fifo_read(bsize, crc_failure ? 0 : bcnt, b_4bit ? 4 : 1);
-            sd_card_receive(bsize, crc_failure ? 0 : bcnt, b_4bit ? 4 : 1, crc_failure ? 3'b101 : 3'b010);
+            check_fifo_read(bsize, crc_failure ? 0 : bcnt, alignment, b_4bit ? 4 : 1);
+            sd_card_receive(bsize, crc_failure ? 0 : bcnt, alignment, b_4bit ? 4 : 1, crc_failure ? 3'b101 : 3'b010);
         join
         
         #(2*SD_TCLK);
@@ -395,6 +464,7 @@ sd_data_serial_host sd_data_serial_host_dut(
                         .bus_4bit       (bus_4bit),
                         .blkcnt         (blkcnt),
                         .start          (start),
+                        .byte_alignment (byte_alignment),
                         .sd_data_busy   (sd_data_busy),
                         .busy           (busy),
                         .crc_ok         (crc_ok)
@@ -413,6 +483,7 @@ begin
     DAT_dat_i = DATA_IDLE;
     data_in = fifo_send_data[0];
     blksize = 0;
+    byte_alignment = 0;
     bus_4bit = 0;
     blkcnt = 0;
     start = 0;
@@ -436,65 +507,120 @@ begin
     
     ///////////////////////////////////////////////////////////////
     //1-bit single block read
-    read_test(64, 0, 0, 0);
+    read_test(64, 0, 0, 0, 0);
     
     ///////////////////////////////////////////////////////////////
     //1-bit single block write
-    write_test(128, 0, 0, 0);
-    
+    write_test(128, 0, 0, 0, 0);
+   
     ///////////////////////////////////////////////////////////////
     //1-bit multiple block read
-    read_test(32, 3, 0, 0);
+    read_test(32, 3, 0, 0, 0);
     
     ///////////////////////////////////////////////////////////////
     //1-bit multiple block write
-    write_test(16, 8, 0, 0);
+    write_test(16, 8, 0, 0, 0);
     
     ///////////////////////////////////////////////////////////////
     //              4 - bit
     ///////////////////////////////////////////////////////////////
     //4-bit single block read
-    read_test(256, 0, 1, 0);
+    read_test(256, 0, 0, 1, 0);
     
     ///////////////////////////////////////////////////////////////
     //4-bit single block write
-    write_test(512, 0, 1, 0);   
+    write_test(512, 0, 0, 1, 0);   
     
     ///////////////////////////////////////////////////////////////
     //4-bit multiple block read
-    read_test(8, 17, 1, 0);
+    read_test(8, 17, 0, 1, 0);
     
     ///////////////////////////////////////////////////////////////
     //4-bit multiple block write
-    write_test(4, 32, 1, 0);
+    write_test(4, 32, 0, 1, 0);
+
+    ///////////////////////////////////////////////////////////////
+    //1-bit unaligned block read
+    read_test(8, 0, 2, 0, 0);
+
+    ///////////////////////////////////////////////////////////////
+    //1-bit unaligned block write
+    write_test(16, 0, 1, 0, 0);
+
+    ///////////////////////////////////////////////////////////////
+    //1-bit unaligned multiple block read
+    read_test(8, 3, 1, 0, 0);
+
+    ///////////////////////////////////////////////////////////////
+    //1-bit unaligned multiple block write
+    write_test(32, 7, 3, 0, 0);
+
+    ///////////////////////////////////////////////////////////////
+    //4-bit unaligned block read
+    read_test(64, 0, 2, 1, 0);
+ 
+    ///////////////////////////////////////////////////////////////
+    //4-bit unaligned block write
+    write_test(32, 0, 3, 1, 0);
+
+    ///////////////////////////////////////////////////////////////
+    //4-bit unaligned multiple block read
+    read_test(8, 2, 1, 1, 0);
+
+    ///////////////////////////////////////////////////////////////
+    //4-bit unaligned multiple block write
+    write_test(4, 1, 3, 1, 0);
     
     //////////////////////////////////////////////////////////////
     //      wierd configurations
-    //4-bit single block read
-    read_test(1, 0, 1, 0);
-    write_test(1, 0, 1, 0);
-    read_test(2, 0, 1, 0);
-    write_test(2, 0, 1, 0);
-    read_test(3, 0, 1, 0);
-    write_test(3, 0, 1, 0);
-    read_test(4, 0, 1, 0);
-    write_test(4, 0, 1, 0);
-    read_test(5, 0, 1, 0);
-    write_test(5, 0, 1, 0);
-    read_test(13, 0, 1, 0);
-    write_test(19, 0, 1, 0);
-    
+    //1-bit
+
+    read_test(1, 0, 0, 0, 0);
+    write_test(1, 0, 0, 0, 0);
+    read_test(2, 0, 0, 0, 0);
+    write_test(2, 0, 0, 0, 0);
+    read_test(3, 0, 0, 0, 0);
+    write_test(3, 0, 0, 0, 0);
+    read_test(4, 0, 0, 0, 0);
+    write_test(4, 0, 0, 0, 0);
+    read_test(5, 0, 0, 0, 0);
+    write_test(5, 0, 0, 0, 0);
+    read_test(13, 0, 0, 0, 0);
+    write_test(19, 0, 0, 0, 0);
+    //unaligned single block
+    read_test(13, 0, 1, 0, 0);
+    //unaligned multiple block
+    write_test(2, 3, 3, 0, 0);
+
+    //4-bit
+    read_test(1, 0, 0, 1, 0);
+    write_test(1, 0, 0, 1, 0);
+    read_test(2, 0, 0, 1, 0);
+    write_test(2, 0, 0, 1, 0);
+    read_test(3, 0, 0, 1, 0);
+    write_test(3, 0, 0, 1, 0);
+    read_test(4, 0, 0, 1, 0);
+    write_test(4, 0, 0, 1, 0);
+    read_test(5, 0, 0, 1, 0);
+    write_test(5, 0, 0, 1, 0);
+    read_test(13, 0, 0, 1, 0);
+    write_test(19, 0, 0, 1, 0);
+    //unaligned single block
+    read_test(7, 0, 2, 1, 0);
+    //unaligne multiple block
+    write_test(9, 13, 1, 1, 0);
+
     //////////////////////////////////////////////////////////////
     //      bad crc
     //
-    read_test(32, 0, 1, 1);
-    read_test(16, 3, 1, 1);
-    write_test(18, 0, 1, 1);
-    write_test(64, 2, 1, 1);
-    read_test(32, 0, 1, 0);
-    read_test(16, 3, 1, 0);
-    write_test(18, 0, 1, 0);
-    write_test(64, 2, 1, 0);
+    read_test(32, 0, 0, 1, 1);
+    read_test(16, 3, 0, 1, 1);
+    write_test(18, 0, 0, 1, 1);
+    write_test(64, 2, 0, 1, 1);
+    read_test(32, 0, 0, 1, 0);
+    read_test(16, 3, 0, 1, 0);
+    write_test(18, 0, 0, 1, 0);
+    write_test(64, 2, 0, 1, 0);
     
     //////////////////////////////////////////////////////////////
     //      TODO: xfer stopped in the middle

@@ -62,6 +62,7 @@ module sd_data_master (
            input tx_fifo_empty_i,
            input tx_fifo_full_i,
            input rx_fifo_full_i,
+           //TODO: should be dependent on rx_fifo_empty_i signal (wishbone read all data case)
            //SD-DATA_Host
            input xfr_complete_i,
            input crc_ok_i,
