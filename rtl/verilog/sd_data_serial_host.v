@@ -325,14 +325,14 @@ begin: FSM_OUT
             READ_DAT: begin
                 if (transf_cnt < data_cycles) begin
                     if (bus_4bit_reg) begin
-                        we <= (transf_cnt[2:0] == 7);
+                        we <= (transf_cnt[2:0] == 7 || transf_cnt == data_cycles-1);
                         data_out[31-(transf_cnt[2:0]<<2)] <= DAT_dat_reg[3];
                         data_out[30-(transf_cnt[2:0]<<2)] <= DAT_dat_reg[2];
                         data_out[29-(transf_cnt[2:0]<<2)] <= DAT_dat_reg[1];
                         data_out[28-(transf_cnt[2:0]<<2)] <= DAT_dat_reg[0];
                     end
                     else begin
-                        we <= (transf_cnt[4:0] == 31);
+                        we <= (transf_cnt[4:0] == 31 || transf_cnt == data_cycles-1);
                         data_out[31-transf_cnt[4:0]] <= DAT_dat_reg[0];
                     end
                     crc_in <= DAT_dat_reg;

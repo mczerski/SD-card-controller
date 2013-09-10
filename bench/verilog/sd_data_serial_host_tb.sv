@@ -231,6 +231,21 @@ task sd_card_receive;
     end
 endtask
 
+task check_single_write;
+    input integer bytes;
+    input integer index;
+    integer mask;
+    begin
+        case (bytes) 
+            1: mask = 32'hff000000;
+            2: mask = 32'hffff0000;
+            3: mask = 32'hffffff00;
+            4: mask = 32'hffffffff;
+        endcase
+        assert((data_out & mask) == (fifo_receive_data[index] & mask));
+    end
+endtask
+
 task check_fifo_write;
     input integer bytes;
     input integer blocks;
@@ -242,7 +257,12 @@ task check_fifo_write;
         while (blocks+1) begin
             wait (we == 1);
             #(SD_TCLK/2);
-            assert(data_out == fifo_receive_data[0]);
+            //if cycles == 0 it means less than 4 bytes to send
+            if (cycles)
+                check_single_write(4, 0);
+            else
+                check_single_write(bytes, 0);
+                
             for (i=1; i<cycles; i++) begin
                 for (j=0; j<32/width-1; j++) begin
                     #SD_TCLK;
@@ -250,8 +270,20 @@ task check_fifo_write;
                 end
                 #SD_TCLK;
                 assert(we == 1);
-                assert(data_out == fifo_receive_data[i%$size(fifo_receive_data)]);
+                check_single_write(4, i%$size(fifo_receive_data));
             end
+            
+            //handle the case when bytes is not a multiple of 4 and more than 4
+            if (cycles && (bytes % 4)) begin
+                for (j=0; j<((bytes % 4)*8)/width-1; j++) begin
+                    #SD_TCLK;
+                    assert(we == 0);
+                end
+                #SD_TCLK;
+                assert(we == 1);
+                check_single_write((bytes % 4), cycles%$size(fifo_receive_data));
+            end
+            
             blocks--;
             #SD_TCLK;
         end
@@ -266,7 +298,7 @@ task check_fifo_read;
     begin
         assert(width == 1 || width == 4) else $stop;
         cycles = bytes/4;
-        while (blocks+1) begin
+        while (bytes >= 4 && blocks+1) begin
             wait (rd == 1);
             #(SD_TCLK/2);
             assert(rd == 1);
@@ -439,6 +471,16 @@ begin
     //////////////////////////////////////////////////////////////
     //      wierd configurations
     //4-bit single block read
+    read_test(1, 0, 1, 0);
+    write_test(1, 0, 1, 0);
+    read_test(2, 0, 1, 0);
+    write_test(2, 0, 1, 0);
+    read_test(3, 0, 1, 0);
+    write_test(3, 0, 1, 0);
+    read_test(4, 0, 1, 0);
+    write_test(4, 0, 1, 0);
+    read_test(5, 0, 1, 0);
+    write_test(5, 0, 1, 0);
     read_test(13, 0, 1, 0);
     write_test(19, 0, 1, 0);
     
