@@ -127,7 +127,7 @@ generic_fifo_dc_gray #(
 
 always @(posedge wb_clk or posedge rst)
     if (rst) begin
-        wbm_adr_o <= {adr_i[31:0], 2'b00};
+        wbm_adr_o <= 0;
         fifo_rd_reg <= 0;
         fifo_rd_ack <= 1;
     end
@@ -137,7 +137,7 @@ always @(posedge wb_clk or posedge rst)
         if (wbm_cyc_o & wbm_stb_o & wbm_ack_i)
             wbm_adr_o <= wbm_adr_o + `MEM_OFFSET;
         else if (reset_fifo)
-            wbm_adr_o <= {adr_i[31:0], 2'b00};
+            wbm_adr_o <= adr_i;
     end
 
 endmodule

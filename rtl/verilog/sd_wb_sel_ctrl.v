@@ -50,7 +50,7 @@ module sd_wb_sel_ctrl(
            input ena,
            input [31:0] base_adr_i,
            input [31:0] wbm_adr_i,
-           input [`BLKSIZE_W-1:0] xfersize,
+           input [`BLKSIZE_W+`BLKCNT_W-1:0] xfersize,
            output [3:0] wbm_sel_o
        );
 
@@ -79,10 +79,11 @@ function [3:0] get_last_sel;
 endfunction
 
 reg [31:0] base_adr_reg;
-reg [`BLKSIZE_W-1:0] xfersize_reg;
+reg [`BLKSIZE_W+`BLKCNT_W-1:0] xfersize_reg;
 wire [31:0] base_adr_plus_xfersize;
 
-wire [3:0] first_mask, second_mask;
+wire [3:0] first_mask;
+wire [3:0] second_mask;
 
 assign base_adr_plus_xfersize = base_adr_reg + xfersize_reg;
 assign first_mask = base_adr_reg[31:2] == wbm_adr_i[31:2] ?
@@ -103,10 +104,10 @@ always @(posedge wb_clk or posedge rst)
             base_adr_reg <= base_adr_i;
             xfersize_reg <= xfersize;
         end
-        else begin
-            if (wbm_adr_i == base_adr_reg + xfersize)
-                base_adr_reg <= base_adr_reg + xfersize;
-        end
+        //else begin
+        //    if (wbm_adr_i == base_adr_reg + xfersize_reg)
+        //        base_adr_reg <= base_adr_reg + xfersize_reg;
+        //end
     end
 
 endmodule

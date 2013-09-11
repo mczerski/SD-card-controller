@@ -98,7 +98,7 @@ input wire [31:0] response_3_reg;
 output reg [0:0] software_reset_reg;
 output reg [15:0] timeout_reg;
 output reg [`BLKSIZE_W-1:0] block_size_reg;
-output reg [15:0] controll_setting_reg;
+output reg [0:0] controll_setting_reg;
 input wire [`INT_CMD_SIZE-1:0] cmd_int_status_reg;
 output reg [`INT_CMD_SIZE-1:0] cmd_int_enable_reg;
 output reg [7:0] clock_divider_reg;
@@ -148,7 +148,7 @@ begin
                     `reset: software_reset_reg <= wb_dat_i[0];
                     `timeout: timeout_reg  <=  wb_dat_i[15:0];
                     `blksize: block_size_reg <= wb_dat_i[`BLKSIZE_W-1:0];
-                    `controller: controll_setting_reg <= wb_dat_i[15:0];
+                    `controller: controll_setting_reg <= wb_dat_i[0:0];
                     `cmd_iser: cmd_int_enable_reg <= wb_dat_i[4:0];
                     `cmd_isr: cmd_int_rst <= 1;
                     `clock_d: clock_divider_reg <= wb_dat_i[7:0];

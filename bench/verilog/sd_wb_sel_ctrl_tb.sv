@@ -51,7 +51,7 @@ reg rst;
 reg ena;
 reg [31:0] base_adr_i;
 reg [31:0] wbm_adr_i;
-reg [`BLKSIZE_W-1:0] xfersize;
+reg [`BLKSIZE_W+`BLKCNT_W-1:0] xfersize;
 wire [3:0] wbm_sel_o;
 
 task check_wb_sel;
@@ -69,7 +69,7 @@ endtask
 
 task set_test;
     input [31:0] base_addr;
-    input [`BLKSIZE_W-1:0] xfer_size;
+    input [`BLKSIZE_W+`BLKCNT_W-1:0] xfer_size;
     begin
         ena = 0;
         base_adr_i = base_addr;
@@ -267,6 +267,21 @@ begin
     wbm_adr_i = 116;
     check_wb_sel(4'hf, `__LINE__);
     wbm_adr_i = 120;
+    check_wb_sel(4'hf, `__LINE__);
+    end_test;
+    check_wb_sel(4'hf, `__LINE__);
+    
+    
+    
+        //eight bytes unaligned
+    wbm_adr_i = 84;
+    set_test(85, 8);
+    check_wb_sel(4'h7, `__LINE__);
+    wbm_adr_i = 88;
+    check_wb_sel(4'hf, `__LINE__);
+    wbm_adr_i = 92;
+    check_wb_sel(4'h8, `__LINE__);
+    wbm_adr_i = 96;
     check_wb_sel(4'hf, `__LINE__);
     end_test;
     check_wb_sel(4'hf, `__LINE__);

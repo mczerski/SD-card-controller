@@ -1500,6 +1500,11 @@ begin
           end
         end
         
+      //clear cmd isr
+       addr = `SD_BASE + `cmd_isr ; 
+       data = 0; 
+       wbm_write(addr, data, 4'hF, 1, wbm_init_waits, wbm_subseq_waits);
+        
       //  addr = `SD_BASE + `bd_tx  ; 
      //   data = 0; //CMD index 0, Erro check =0, rsp = 0;
      //   wbm_write(addr, data, 4'hF, 1, wbm_init_waits, wbm_subseq_waits);
@@ -1533,9 +1538,14 @@ begin
 			      
 			    end  
 			    clear_memories;  
+			    
+      //clear data isr
+       addr = `SD_BASE + `data_isr ; 
+       data = 0; 
+       wbm_write(addr, data, 4'hF, 1, wbm_init_waits, wbm_subseq_waits);
 
 	addr = `SD_BASE + `dst_addr  ; 
-        data = 0; //
+        data = 1; //
         wbm_write(addr, data, 4'hF, 1, wbm_init_waits, wbm_subseq_waits);
         
      //   addr = `SD_BASE + `bd_rx  ; 
@@ -1547,7 +1557,7 @@ begin
        data = 0; 
        wbm_write(addr, data, 4'hF, 1, wbm_init_waits, wbm_subseq_waits);
         addr = `SD_BASE + `command ; 
-        data = `CMD18 | `CRD | `CICE | `CRCE | `RSP_48;
+        data = `CMD17 | `CRD | `CICE | `CRCE | `RSP_48;
         wbm_write(addr, data, 4'hF, 1, wbm_init_waits, wbm_subseq_waits);
         //Argument (block address)
         addr = `SD_BASE + `argument  ; 
@@ -1602,8 +1612,8 @@ begin
 			      
 			    end  
 			
-      //clear cmd isr
-       addr = `SD_BASE + `cmd_isr ; 
+      //clear data isr
+       addr = `SD_BASE + `data_isr ; 
        data = 0; 
        wbm_write(addr, data, 4'hF, 1, wbm_init_waits, wbm_subseq_waits);
         addr = `SD_BASE + `command ; 

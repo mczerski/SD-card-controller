@@ -251,7 +251,7 @@ begin: FSM_OUT
                     end
                     DAT_oe_o <= 1;
                     DAT_dat_o <= bus_4bit_reg ? 4'h0 : 4'he;
-                    data_index <= bus_4bit_reg ? (byte_alignment_reg << 1) + 1 : (byte_alignment_reg << 3) + 1;
+                    data_index <= bus_4bit_reg ? {2'b00, byte_alignment_reg, 1'b1} : {byte_alignment_reg, 3'b001};
                 end
                 else if ((transf_cnt >= 2) && (transf_cnt <= data_cycles+1)) begin
                     DAT_oe_o<=1;
@@ -318,7 +318,7 @@ begin: FSM_OUT
                 next_block <= (blkcnt_reg != 0);
                 if (next_state != WRITE_BUSY) begin
                     blkcnt_reg <= blkcnt_reg - `BLKCNT_W'h1;
-                    byte_alignment_reg <= byte_alignment_reg + blksize_reg;
+                    byte_alignment_reg <= byte_alignment_reg + blksize_reg[1:0];
                     crc_rst <= 1;
                     crc_c <= 16;
                     crc_status <= 0;
@@ -343,11 +343,6 @@ begin: FSM_OUT
                         data_out[30-(data_index[2:0]<<2)] <= DAT_dat_reg[2];
                         data_out[29-(data_index[2:0]<<2)] <= DAT_dat_reg[1];
                         data_out[28-(data_index[2:0]<<2)] <= DAT_dat_reg[0];
-                        if (data_index[2:0] == 3'h7) begin
-                            data_index <= 0;
-                        end
-                        else
-                            data_index<=data_index + 5'h1;
                     end
                     else begin
                         we <= (data_index == 31 || (transf_cnt == data_cycles-1  && !blkcnt_reg));
@@ -376,7 +371,7 @@ begin: FSM_OUT
                         if (crc_c == 0) begin
                             next_block <= (blkcnt_reg != 0);
                             blkcnt_reg <= blkcnt_reg - `BLKCNT_W'h1;
-                            byte_alignment_reg <= byte_alignment_reg + blksize_reg;
+                            byte_alignment_reg <= byte_alignment_reg + blksize_reg[1:0];
                             crc_rst <= 1;
                         end
                     end

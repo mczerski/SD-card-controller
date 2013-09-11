@@ -67,7 +67,7 @@ reg [31:0] response_3_reg;
 wire [0:0] software_reset_reg;
 wire [15:0] timeout_reg;
 wire [`BLKSIZE_W-1:0] block_size_reg;
-wire [15:0] controll_setting_reg;
+wire [0:0] controll_setting_reg;
 reg [`INT_CMD_SIZE-1:0] cmd_int_status_reg;
 wire [`INT_CMD_SIZE-1:0] cmd_int_enable_reg;
 wire [7:0] clock_divider_reg;
@@ -150,6 +150,7 @@ endtask
 task wb_read_check;
     input integer data;
     input integer addr;
+    input integer line;
     begin
         //wait for falling edge of wb_clk_i
         wait(wb_clk_i == 1);
@@ -168,10 +169,10 @@ task wb_read_check;
         wb_we_i = 0;
         wb_cyc_i = 0;
         wb_stb_i = 0;
-        assert(wb_dat_o == data);
+        assert(wb_dat_o == data) else begin $display("in line %d", line); assert(0); end
     
         #(1.5*TCLK);
-        assert(wb_ack_o == 0);
+        assert(wb_ack_o == 0) else begin $display("in line %d", line); assert(0); end
         #TCLK;
     end
 endtask
@@ -235,23 +236,23 @@ begin
     
     //check response_0 register
     response_0_reg = 32'h04050607;
-    wb_read_check(32'h04050607, `resp0);
+    wb_read_check(32'h04050607, `resp0, `__LINE__);
     
     //check response_1 register
     response_1_reg = 32'h05060708;
-    wb_read_check(32'h05060708, `resp1);
+    wb_read_check(32'h05060708, `resp1, `__LINE__);
     
     //check response_2 register
     response_2_reg = 32'h06070809;
-    wb_read_check(32'h06070809, `resp2);
+    wb_read_check(32'h06070809, `resp2, `__LINE__);
     
     //check response_3 register
     response_3_reg = 32'h0708090a;
-    wb_read_check(32'h0708090a, `resp3);
+    wb_read_check(32'h0708090a, `resp3, `__LINE__);
     
     //check controller register
-    wb_write(16'h0a0b, `controller);
-    assert(controll_setting_reg == 16'h0a0b);
+    wb_write(1'h1, `controller);
+    assert(controll_setting_reg == 1'h1);
     
     //check timeout register
     wb_write(16'h0b0c, `timeout);
@@ -266,10 +267,10 @@ begin
     assert(software_reset_reg == 1'h1);
 
     //check voltage register
-    wb_read_check(8'b0000_111_1, `voltage);
+    wb_read_check(`SUPPLY_VOLTAGE_mV, `voltage, `__LINE__);
     
     //check capability register
-    wb_read_check(16'h0000, `capa);
+    wb_read_check(16'h0000, `capa, `__LINE__);
     
     //check cmd_isr register write
     fork
@@ -284,7 +285,7 @@ begin
     join
     //check cmd_isr register read
     cmd_int_status_reg = 5'h1a;
-    wb_read_check(5'h1a, `cmd_isr);
+    wb_read_check(5'h1a, `cmd_isr, `__LINE__);
     
     //check cmd_iser register
     wb_write(5'h15, `cmd_iser);
@@ -303,7 +304,7 @@ begin
     join
     //check data_isr register read
     data_int_status_reg = 3'h6;
-    wb_read_check(3'h6, `data_isr);
+    wb_read_check(3'h6, `data_isr, `__LINE__);
     
     //check data_iser register
     wb_write(3'h5, `data_iser);

@@ -289,9 +289,9 @@ begin : FSM_COMBODAT
  next_datastate  = 0;   
 case(dataState)  
  DATA_IDLE: begin
-   if ((CardStatus[12:9]==`RCV) ||  (mult_write == 1'b1) )  
+   if ((CardStatus[12:9]==`RCV) ||  (mult_read == 1'b1) )  
      next_datastate = READ_WAITS;
-   else if ((CardStatus[12:9]==`DATAS )||  (mult_read == 1'b1) ) 
+   else if ((CardStatus[12:9]==`DATAS )||  (mult_write == 1'b1) ) 
      next_datastate = WRITE_DATA;
    else
      next_datastate = DATA_IDLE; 
@@ -740,7 +740,8 @@ always @ (posedge sdClk) begin
 
      crcDat_rst<=1;
      crcDat_en<=0;
-     crcDat_in<=0;       
+     crcDat_in<=0;
+     oeDat<=0;
 
   end
   
