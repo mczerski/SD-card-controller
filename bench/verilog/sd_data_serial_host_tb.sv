@@ -176,12 +176,13 @@ task sd_card_receive;
     integer crc[0:3];
     integer crc_in[0:3];
     integer aligned_data;
+    integer check_mask;
     //reg [3:0] crc_out;
     begin
         assert(width == 1 || width == 4) else $stop;
         assert(alignment < 4) else $stop;
         cycles = bytes*8/width;
-        
+        data_idx = 0;
         while(blocks+1) begin
             received_data = 0;
             crc = {0, 0, 0, 0};
@@ -197,10 +198,20 @@ task sd_card_receive;
                 for (j=0; j<width; j++)
                     received_data[shift+j] = DAT_dat_o[j];
                 assert(DAT_oe_o == 1);
-                if ((i*width)%32 == (32-width)) begin
-                    data_idx = (i*width/32)%$size(fifo_send_data);
-                    aligned_data = align_words_to_sd(fifo_send_data[data_idx], fifo_send_data[(data_idx+1)%$size(fifo_send_data)], alignment);
-                    //$display("aligned %x, r %x", aligned_data, received_data);
+                if ((i*width)%32 == (32-width) || i == cycles-1) begin
+                    aligned_data = align_words_to_sd(fifo_send_data[data_idx%$size(fifo_send_data)], fifo_send_data[(data_idx+1)%$size(fifo_send_data)], alignment);
+                    if (alignment + (i*width/8)%4 >= 3)
+                        data_idx++;
+                    //check_mask = 32'hffffffff;
+                    case ((i*width/8)%4)
+                        0: check_mask = 32'hff000000;
+                        1: check_mask = 32'hffff0000;
+                        2: check_mask = 32'hffffff00;
+                        3: check_mask = 32'hffffffff;
+                    endcase
+                    aligned_data &= check_mask;
+                    received_data &= check_mask;
+//                    $display("aligned %x, r %x", aligned_data, received_data);
                     assert(aligned_data == received_data);
                 end
                 for (j=0; j<width; j++)
@@ -248,6 +259,7 @@ task sd_card_receive;
             #(10*SD_TCLK);
             DAT_dat_i = DATA_IDLE;
             blocks--;
+            alignment = (alignment + bytes) % 4;
         end
         #SD_TCLK;
     end
@@ -305,9 +317,9 @@ task check_fifo_write;
     begin
         assert(width == 1 || width == 4) else $stop;
         assert(alignment < 4) else $stop;
-        bytes += alignment;
-        cycles = bytes/4;
         while (blocks+1) begin
+            bytes += alignment;
+            cycles = bytes/4;
             wait (we == 1);
             #(SD_TCLK/2);
             //if cycles == 0 it means less than 4 bytes to send
@@ -325,20 +337,22 @@ task check_fifo_write;
                 assert(we == 1);
                 check_single_write(4, 0, alignment, i%$size(fifo_receive_data));
             end
-            
-            //handle the case when bytes is not a multiple of 4 and more than 4
-            if (cycles && (bytes % 4)) begin
-                for (j=0; j<((bytes % 4)*8)/width-1; j++) begin
-                    #SD_TCLK;
-                    assert(we == 0);
-                end
-                #SD_TCLK;
-                assert(we == 1);
-                check_single_write((bytes % 4), 0, alignment, cycles%$size(fifo_receive_data));
-            end
-            
             blocks--;
+            if (blocks > -1) begin
+                bytes -= alignment;
+                alignment = (alignment + bytes) % 4; 
+                #SD_TCLK;
+            end
+        end
+        //handle the case when bytes is not a multiple of 4 and more than 4
+        if (cycles && (bytes % 4)) begin
+            for (j=0; j<((bytes % 4)*8)/width-1; j++) begin
+                #SD_TCLK;
+                assert(we == 0);
+            end
             #SD_TCLK;
+            assert(we == 1);
+            check_single_write((bytes % 4), 0, alignment, cycles%$size(fifo_receive_data));
         end
     end
 endtask
@@ -349,35 +363,67 @@ task check_fifo_read;
     input integer alignment;
     input integer width;
     integer cycles, i, j;
+    integer read_idx;
     begin
         assert(width == 1 || width == 4) else $stop;
         bytes += alignment;
         cycles = bytes/4;
-        while (bytes >= 4 && blocks+1) begin
-            wait (rd == 1);
-            #(SD_TCLK/2);
-            assert(rd == 1);
-            //read delay !!!
-            #(2*SD_TCLK);
-            data_in = fifo_send_data[1%$size(fifo_send_data)];
-            //$display("data_in %x", data_in);
-            for (i=2; i<cycles+1; i++) begin
-                for (j=0; j<32/width-1; j++) begin
+        read_idx = 1;
+//        $display("read_idx %d", read_idx);
+//        $display("data_in0 %x", data_in);
+//        $display("bytes %d", bytes);
+        while (blocks+1) begin
+            if (bytes >= 4) begin
+                wait (rd == 1);
+                #(SD_TCLK/2);
+                assert(rd == 1);
+                //read delay !!!
+                #(2*SD_TCLK);
+                data_in = fifo_send_data[read_idx%$size(fifo_send_data)];
+                read_idx++;
+//                $display("read_idx %d", read_idx);
+//                $display("data_in1 %x", data_in);
+                for (i=1; i<cycles; i++) begin
+                    for (j=0; j<32/width-1; j++) begin
+                        #SD_TCLK;
+                        if (j == 32/width-3)
+                            assert(rd == 1);
+                        else
+                            assert(rd == 0);
+                    end
                     #SD_TCLK;
-                    if (j == 32/width-3)
-                        assert(rd == 1);
-                    else
-                        assert(rd == 0);
+                    assert(rd == 0);
+                    data_in = fifo_send_data[read_idx%$size(fifo_send_data)];
+                    read_idx++;
+//                    $display("read_idx %d", read_idx);
+//                    $display("data_in2 %x", data_in);
                 end
-                #SD_TCLK;
-                assert(rd == 0);
-                data_in = fifo_send_data[i%$size(fifo_send_data)];
-                //$display("data_in %x", data_in);
             end
-            #(((bytes % 4)*8/width + 1)*SD_TCLK);
+            for (i=0; i<((bytes % 4)*8/width); i++) begin
+                assert(rd == 0);
+                #SD_TCLK;
+            end
+//            $display("bytes %d, alignment %d", bytes, alignment);
+//            if (width == 4 && (bytes % 4) == 3) begin
+//                assert(rd == 1);
+//                //read delay !!!
+//                #(2*SD_TCLK);
+//                data_in = fifo_send_data[read_idx%$size(fifo_send_data)];
+//                read_idx++;
+//                $display("data_in3 %x", data_in);
+//            end
+//            else
             assert(rd == 0);
-            data_in = fifo_send_data[0];
+            //$display("data_in %x", data_in);
             blocks--;
+            bytes -= alignment;
+            alignment = (alignment + bytes) % 4;
+            bytes += alignment;
+            cycles = bytes/4;
+        end
+        for (i=0; i<32/width; i++) begin
+            #SD_TCLK;
+            assert(rd == 0);
         end
     end
 endtask
@@ -444,6 +490,7 @@ task write_test;
             check_fifo_read(bsize, crc_failure ? 0 : bcnt, alignment, b_4bit ? 4 : 1);
             sd_card_receive(bsize, crc_failure ? 0 : bcnt, alignment, b_4bit ? 4 : 1, crc_failure ? 3'b101 : 3'b010);
         join
+        data_in = fifo_send_data[0];
         
         #(2*SD_TCLK);
         assert(busy == 0);
@@ -558,11 +605,11 @@ begin
     ///////////////////////////////////////////////////////////////
     //4-bit unaligned block read
     read_test(64, 0, 2, 1, 0);
- 
+
     ///////////////////////////////////////////////////////////////
     //4-bit unaligned block write
     write_test(32, 0, 3, 1, 0);
-
+ 
     ///////////////////////////////////////////////////////////////
     //4-bit unaligned multiple block read
     read_test(8, 2, 1, 1, 0);
@@ -574,7 +621,6 @@ begin
     //////////////////////////////////////////////////////////////
     //      wierd configurations
     //1-bit
-
     read_test(1, 0, 0, 0, 0);
     write_test(1, 0, 0, 0, 0);
     read_test(2, 0, 0, 0, 0);
@@ -589,7 +635,9 @@ begin
     write_test(19, 0, 0, 0, 0);
     //unaligned single block
     read_test(13, 0, 1, 0, 0);
+    write_test(2, 0, 3, 0, 0);
     //unaligned multiple block
+    read_test(13, 2, 1, 0, 0);
     write_test(2, 3, 3, 0, 0);
 
     //4-bit
@@ -607,8 +655,10 @@ begin
     write_test(19, 0, 0, 1, 0);
     //unaligned single block
     read_test(7, 0, 2, 1, 0);
-    //unaligne multiple block
-    write_test(9, 13, 1, 1, 0);
+    write_test(9, 0, 1, 1, 0);
+    //unaligned multiple block
+    read_test(7, 2, 2, 1, 0);
+    write_test(1, 13, 1, 1, 0);
 
     //////////////////////////////////////////////////////////////
     //      bad crc

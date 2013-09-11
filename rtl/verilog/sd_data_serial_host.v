@@ -94,6 +94,7 @@ reg [2:0] crc_status;
 reg busy_int;
 reg [`BLKCNT_W-1:0] blkcnt_reg;
 reg [1:0] byte_alignment_reg;
+reg [`BLKSIZE_W-1:0] blksize_reg;
 reg next_block;
 wire start_bit;
 reg [4:0] crc_c;
@@ -214,6 +215,7 @@ begin: FSM_OUT
                 next_block <= 0;
                 blkcnt_reg <= blkcnt;
                 byte_alignment_reg <= byte_alignment;
+                blksize_reg <= blksize;
                 data_cycles <= (bus_4bit ? (blksize << 1) : (blksize << 3));
                 bus_4bit_reg <= bus_4bit;
             end
@@ -223,7 +225,7 @@ begin: FSM_OUT
                 next_block <= 0;
                 rd <= 0;
                 //special case
-                if (bus_4bit_reg && byte_alignment_reg == 2'b11 && transf_cnt == 0) begin
+                if (transf_cnt == 0 && byte_alignment_reg == 2'b11 && bus_4bit_reg) begin
                     rd <= 1;
                 end
                 else if (transf_cnt == 1) begin
@@ -266,7 +268,7 @@ begin: FSM_OUT
                             data_in[29-(data_index[2:0]<<2)], 
                             data_in[28-(data_index[2:0]<<2)]
                             };
-                        if (data_index[2:0] == 3'h5/*not 7 - read delay !!!*/) begin
+                        if (data_index[2:0] == 3'h5/*not 7 - read delay !!!*/ && transf_cnt <= data_cycles-1) begin
                             rd <= 1;
                         end
                     end
@@ -316,6 +318,7 @@ begin: FSM_OUT
                 next_block <= (blkcnt_reg != 0);
                 if (next_state != WRITE_BUSY) begin
                     blkcnt_reg <= blkcnt_reg - `BLKCNT_W'h1;
+                    byte_alignment_reg <= byte_alignment_reg + blksize_reg;
                     crc_rst <= 1;
                     crc_c <= 16;
                     crc_status <= 0;
@@ -335,7 +338,7 @@ begin: FSM_OUT
             READ_DAT: begin
                 if (transf_cnt < data_cycles) begin
                     if (bus_4bit_reg) begin
-                        we <= (data_index[2:0] == 7 || transf_cnt == data_cycles-1);
+                        we <= (data_index[2:0] == 7 || (transf_cnt == data_cycles-1  && !blkcnt_reg));
                         data_out[31-(data_index[2:0]<<2)] <= DAT_dat_reg[3];
                         data_out[30-(data_index[2:0]<<2)] <= DAT_dat_reg[2];
                         data_out[29-(data_index[2:0]<<2)] <= DAT_dat_reg[1];
@@ -347,7 +350,7 @@ begin: FSM_OUT
                             data_index<=data_index + 5'h1;
                     end
                     else begin
-                        we <= (data_index == 31 || transf_cnt == data_cycles-1);
+                        we <= (data_index == 31 || (transf_cnt == data_cycles-1  && !blkcnt_reg));
                         data_out[31-data_index] <= DAT_dat_reg[0];
                     end
                     data_index <= data_index + 5'h1;
@@ -373,6 +376,7 @@ begin: FSM_OUT
                         if (crc_c == 0) begin
                             next_block <= (blkcnt_reg != 0);
                             blkcnt_reg <= blkcnt_reg - `BLKCNT_W'h1;
+                            byte_alignment_reg <= byte_alignment_reg + blksize_reg;
                             crc_rst <= 1;
                         end
                     end

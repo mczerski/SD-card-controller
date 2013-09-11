@@ -127,6 +127,7 @@ output int_cmd, int_data;
 
 //SD clock
 wire sd_clk_o; //Sd_clk used in the system
+wire [3:0] wr_wb_sel;
 
 wire go_idle;
 wire cmd_start_wb_clk;
@@ -289,7 +290,7 @@ sd_data_serial_host sd_data_serial_host0(
     .busy           (data_busy),
     .crc_ok         (data_crc_ok)
     );
-       
+           
 sd_fifo_filler sd_fifo_filler0(
     .wb_clk    (wb_clk_i),
     .rst       (wb_rst_i | software_reset_reg_sd_clk[0]),
@@ -302,7 +303,7 @@ sd_fifo_filler sd_fifo_filler0(
     .wbm_ack_i (m_wb_ack_i),
     .en_rx_i   (start_rx_fifo),
     .en_tx_i   (start_tx_fifo),
-    .adr_i     (dma_addr_reg_sd_clk),
+    .adr_i     (dma_addr_reg_wb_clk),
     .sd_clk    (sd_clk_o),
     .dat_i     (data_in_rx_fifo),
     .dat_o     (data_out_tx_fifo),
@@ -314,6 +315,16 @@ sd_fifo_filler sd_fifo_filler0(
     .wb_full_o    (tx_fifo_full)
     );
         
+sd_wb_sel_ctrl sd_wb_sel_ctrl0(
+        .wb_clk         (wb_clk_i),
+        .rst            (wb_rst_i | software_reset_reg_sd_clk[0]),
+        .ena            (start_rx_fifo),
+        .base_adr_i     (dma_addr_reg_wb_clk),
+        .wbm_adr_i      (m_wb_adr_o),
+        .xfersize       (block_size_reg_wb_clk * block_count_reg_wb_clk),
+        .wbm_sel_o      (wr_wbm_sel)
+        );
+
 sd_data_xfer_trig sd_data_xfer_trig0 (
     .sd_clk                (sd_clk_o),
     .rst                   (wb_rst_i | software_reset_reg_sd_clk[0]),
@@ -412,6 +423,6 @@ assign m_wb_bte_o = 2'b00;
 assign int_cmd =  |(cmd_int_status_reg_wb_clk & cmd_int_enable_reg_wb_clk);
 assign int_data =  |(data_int_status_reg_wb_clk & data_int_enable_reg_wb_clk);
 
-assign m_wb_sel_o = 4'b1111;
+assign m_wb_sel_o = m_wb_cyc_o & m_wb_we_o ? wr_wbm_sel : 4'b1111;
 
 endmodule
