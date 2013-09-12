@@ -104,10 +104,6 @@ always @(posedge wb_clk or posedge rst)
             base_adr_reg <= base_adr_i;
             xfersize_reg <= xfersize;
         end
-        //else begin
-        //    if (wbm_adr_i == base_adr_reg + xfersize_reg)
-        //        base_adr_reg <= base_adr_reg + xfersize_reg;
-        //end
     end
 
 endmodule

@@ -672,8 +672,6 @@ begin
     write_test(18, 0, 0, 1, 0);
     write_test(64, 2, 0, 1, 0);
     
-    read_test(32, 0, 1, 1, 0);
-    
     //////////////////////////////////////////////////////////////
     //      TODO: xfer stopped in the middle
     
