@@ -263,7 +263,7 @@
                 \texttt{[4]} & \texttt{0x0} & RW & enable index error event \\ \hline
                 \texttt{[3]} & \texttt{0x0} & RW & enable crc error event \\ \hline
                 \texttt{[2]} & \texttt{0x0} & RW & enable timeout error event \\ \hline
-                \texttt{[1]} & \texttt{0x0} & RW & enable error event (logic sum of all error events) \\ \hline
+                \texttt{[1]} & \texttt{0x0} & RW & enable error event \\ \hline
                 \texttt{[0]} & \texttt{0x0} & RW & enable command transaction succesful completion event \\ \hline
                 \hline
         \end{tabular}
@@ -280,9 +280,10 @@
     \caption{Data transaction events status register}
         \begin{tabular}{m{1.3cm}|m{2cm}|m{1cm}|m{8cm}}
                 \rowcolor[gray]{0.7} bit \# & reset value & access & description \\ \hline \hline
-                \texttt{[31:3]} & & & reserved \\ \hline
-                \texttt{[2]} & \texttt{0x0} & RW & fifo error event \\ \hline
-                \texttt{[1]} & \texttt{0x0} & RW & crc error event \\ \hline
+                \texttt{[31:4]} & & & reserved \\ \hline
+                \texttt{[3]} & \texttt{0x0} & RW & fifo error event \\ \hline
+                \texttt{[2]} & \texttt{0x0} & RW & crc error event \\ \hline
+                \texttt{[1]} & \texttt{0x0} & RW & error event (logic sum of all error events) \\ \hline
                 \texttt{[0]} & \texttt{0x0} & RW & data transaction succesful completion event \\ \hline
                 \hline
         \end{tabular}
@@ -298,9 +299,10 @@
     \caption{Data transaction events enable register}
         \begin{tabular}{m{1.3cm}|m{2cm}|m{1cm}|m{8cm}}
                 \rowcolor[gray]{0.7} bit \# & reset value & access & description \\ \hline \hline
-                \texttt{[31:3]} & & & reserved \\ \hline
-                \texttt{[2]} & \texttt{0x0} & RW & enable fifo error event \\ \hline
-                \texttt{[1]} & \texttt{0x0} & RW & enable crc error event \\ \hline
+                \texttt{[31:4]} & & & reserved \\ \hline
+                \texttt{[3]} & \texttt{0x0} & RW & enable fifo error event \\ \hline
+                \texttt{[2]} & \texttt{0x0} & RW & enable crc error event \\ \hline
+                \texttt{[1]} & \texttt{0x0} & RW & enable error event \\ \hline
                 \texttt{[0]} & \texttt{0x0} & RW & enable data transaction succesful completion event \\ \hline
                 \hline
         \end{tabular}
