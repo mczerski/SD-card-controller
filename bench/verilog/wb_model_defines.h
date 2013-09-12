@@ -49,6 +49,9 @@
 //
 //
 
+// binary data memory files directory
+`define BIN_DIR "../bin"
+
 // WISHBONE frequency in GHz
 `define WB_FREQ 0.100
 

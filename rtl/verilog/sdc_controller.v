@@ -197,7 +197,7 @@ wire [31:0] response_3_reg_sd_clk;
 wire [`BLKSIZE_W-1:0] block_size_reg_sd_clk;
 wire [0:0] controll_setting_reg_sd_clk;
 wire [`INT_CMD_SIZE-1:0] cmd_int_status_reg_sd_clk;
-wire [2:0] data_int_status_reg_sd_clk;
+wire [`INT_DATA_SIZE-1:0] data_int_status_reg_sd_clk;
 wire [`BLKCNT_W-1:0] block_count_reg_sd_clk;
 wire [1:0] dma_addr_reg_sd_clk;
 wire [7:0] clock_divider_reg_sd_clk;

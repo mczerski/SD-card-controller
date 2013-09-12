@@ -67,7 +67,7 @@
 module WB_BUS_MON(
                     CLK_I,
                     RST_I,
-	            ACK_I,
+                    ACK_I,
                     ADDR_O,
                     CYC_O,
                     DAT_I,

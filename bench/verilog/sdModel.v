@@ -487,7 +487,7 @@ always @ (posedge sdClk) begin
            if (lastCMD == 55 && outDelayCnt==0) begin             
               if (inCmd[9:8] == 2'b10) begin
                BusWidth <=4;      
-                    $display(sdModel_file_desc, "**BUS WIDTH 4 ") ;
+                    $fdisplay(sdModel_file_desc, "**BUS WIDTH 4 ") ;
                end      
               else
                BusWidth <=1;               

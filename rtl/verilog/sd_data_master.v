@@ -169,8 +169,10 @@ begin
                 d_write_o <= 0;
                 if (tx_cycle) begin
                     if (tx_fifo_empty_i) begin
-                        if (!trans_done)
+                        if (!trans_done) begin
                             int_status_o[`INT_DATA_CFE] <= 1;
+                            int_status_o[`INT_DATA_EI] <= 1;
+                        end
                         trans_done <= 1;
                         //stop sd_data_serial_host
                         d_write_o <= 1;
@@ -179,8 +181,10 @@ begin
                 end
                 else begin
                     if (rx_fifo_full_i) begin
-                        if (!trans_done)
+                        if (!trans_done) begin
                             int_status_o[`INT_DATA_CFE] <= 1;
+                            int_status_o[`INT_DATA_EI] <= 1;
+                        end
                         trans_done <= 1;
                         //stop sd_data_serial_host
                         d_write_o <= 1;
@@ -192,8 +196,10 @@ begin
                     d_read_o <= 0;
                     trans_done <= 1;
                     if (!crc_ok_i)  begin //Wrong CRC and Data line free.
-                        if (!trans_done)
+                        if (!trans_done) begin
                             int_status_o[`INT_DATA_CCRCE] <= 1;
+                            int_status_o[`INT_DATA_EI] <= 1;
+                        end
                     end
                     else if (crc_ok_i) begin //Data Line free
                         if (!trans_done)

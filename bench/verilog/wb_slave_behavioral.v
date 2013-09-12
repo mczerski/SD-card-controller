@@ -101,14 +101,7 @@ reg     `WB_DATA_TYPE wb_memory [0:1048575]; // WB memory - 20 addresses connect
 reg     `WB_DATA_TYPE mem_wr_data_out;
 reg     `WB_DATA_TYPE mem_rd_data_in;
 
-initial $readmemh("../bin/wb_memory.txt",wb_memory);
-
-integer k;
-initial begin
-	$display("Contents of Mem after reading data file:");
-	for (k=0; k<10; k=k+1) $display("%d:%h",k,wb_memory[k]);
-end
-
+initial $readmemh({`BIN_DIR, "/wb_memory.txt"},wb_memory);
 
 
 /*------------------------------------------------------------------------------------------------------

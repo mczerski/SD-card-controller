@@ -59,10 +59,11 @@
 `define INT_CMD_CIE  4
 
 //data module interrupts
-`define INT_DATA_SIZE 3
+`define INT_DATA_SIZE 4
 `define INT_DATA_CC 0
-`define INT_DATA_CCRCE 1
-`define INT_DATA_CFE 2
+`define INT_DATA_EI 1
+`define INT_DATA_CCRCE 2
+`define INT_DATA_CFE 3
 
 //command register defines
 `define CMD_REG_SIZE 14
