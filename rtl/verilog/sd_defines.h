@@ -49,6 +49,8 @@
 //global defines
 `define BLKSIZE_W 12
 `define BLKCNT_W 16
+`define CMD_TIMEOUT_W 24
+`define DATA_TIMEOUT_W 16
 
 //cmd module interrupts
 `define INT_CMD_SIZE 5
@@ -59,11 +61,12 @@
 `define INT_CMD_CIE  4
 
 //data module interrupts
-`define INT_DATA_SIZE 4
+`define INT_DATA_SIZE 5
 `define INT_DATA_CC 0
 `define INT_DATA_EI 1
-`define INT_DATA_CCRCE 2
-`define INT_DATA_CFE 3
+`define INT_DATA_CTE 2
+`define INT_DATA_CCRCE 3
+`define INT_DATA_CFE 4
 
 //command register defines
 `define CMD_REG_SIZE 14
@@ -81,8 +84,9 @@
 `define resp1 8'h0c
 `define resp2 8'h10
 `define resp3 8'h14
+`define data_timeout 8'h18
 `define controller 8'h1c
-`define timeout 8'h20
+`define cmd_timeout 8'h20
 `define clock_d 8'h24
 `define reset 8'h28
 `define voltage 8'h2c

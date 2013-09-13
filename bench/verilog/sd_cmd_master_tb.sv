@@ -62,7 +62,7 @@ reg finish_i;
 reg busy_i;
 reg [31:0] argument_i;
 reg [13:0] command_i;
-reg [15:0] timeout_i;
+reg [`CMD_TIMEOUT_W-1:0] timeout_i;
 wire [`INT_CMD_SIZE-1:0] int_status_o;
 wire [31:0] response_0_o;
 wire [31:0] response_1_o;

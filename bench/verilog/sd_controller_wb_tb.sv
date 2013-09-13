@@ -65,7 +65,8 @@ reg [31:0] response_1_reg;
 reg [31:0] response_2_reg;
 reg [31:0] response_3_reg;
 wire [0:0] software_reset_reg;
-wire [15:0] timeout_reg;
+wire [`CMD_TIMEOUT_W-1:0] cmd_timeout_reg;
+wire [`DATA_TIMEOUT_W-1:0] data_timeout_reg;
 wire [`BLKSIZE_W-1:0] block_size_reg;
 wire [0:0] controll_setting_reg;
 reg [`INT_CMD_SIZE-1:0] cmd_int_status_reg;
@@ -99,7 +100,8 @@ sd_controller_wb sd_controller_wb_dut(
            response_2_reg,
            response_3_reg,
            software_reset_reg,
-           timeout_reg,
+           cmd_timeout_reg,
+           data_timeout_reg,
            block_size_reg,
            controll_setting_reg,
            cmd_int_status_reg,
@@ -205,7 +207,8 @@ begin
     assert(argument_reg == 0);
     assert(command_reg == 0);
     assert(software_reset_reg == 0);
-    assert(timeout_reg == 0);
+    assert(cmd_timeout_reg == 0);
+    assert(data_timeout_reg == 0);
     assert(block_size_reg == `RESET_BLOCK_SIZE);
     assert(controll_setting_reg == 0);
     assert(cmd_int_status_reg == 0);
@@ -255,8 +258,12 @@ begin
     assert(controll_setting_reg == 1'h1);
     
     //check timeout register
-    wb_write(16'h0b0c, `timeout);
-    assert(timeout_reg == 16'h0b0c);
+    wb_write(`CMD_TIMEOUT_W'h0b0c, `cmd_timeout);
+    assert(cmd_timeout_reg == `CMD_TIMEOUT_W'h0b0c);
+    
+    //check data timeout register
+    wb_write(16'h0c0b, `data_timeout);
+    assert(data_timeout_reg == 16'h0c0b);
     
     //check clock_devider register
     wb_write(8'h0d, `clock_d);

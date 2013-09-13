@@ -61,7 +61,8 @@ module sd_controller_wb(
            response_2_reg,
            response_3_reg,
            software_reset_reg,
-           timeout_reg,
+           cmd_timeout_reg,
+           data_timeout_reg,
            block_size_reg,
            controll_setting_reg,
            cmd_int_status_reg,
@@ -96,7 +97,8 @@ input wire [31:0] response_1_reg;
 input wire [31:0] response_2_reg;
 input wire [31:0] response_3_reg;
 output reg [0:0] software_reset_reg;
-output reg [15:0] timeout_reg;
+output reg [`CMD_TIMEOUT_W-1:0] cmd_timeout_reg;
+output reg [`DATA_TIMEOUT_W-1:0] data_timeout_reg;
 output reg [`BLKSIZE_W-1:0] block_size_reg;
 output reg [0:0] controll_setting_reg;
 input wire [`INT_CMD_SIZE-1:0] cmd_int_status_reg;
@@ -119,7 +121,8 @@ begin
         argument_reg <= 0;
         command_reg <= 0;
         software_reset_reg <= 0;
-        timeout_reg <= 0;
+        cmd_timeout_reg <= 0;
+        data_timeout_reg <= 0;
         block_size_reg <= `RESET_BLOCK_SIZE;
         controll_setting_reg <= 0;
         cmd_int_enable_reg <= 0;
@@ -146,7 +149,8 @@ begin
                     end
                     `command: command_reg <= wb_dat_i[`CMD_REG_SIZE-1:0];
                     `reset: software_reset_reg <= wb_dat_i[0];
-                    `timeout: timeout_reg  <=  wb_dat_i[15:0];
+                    `cmd_timeout: cmd_timeout_reg  <=  wb_dat_i[`CMD_TIMEOUT_W-1:0];
+                    `data_timeout: data_timeout_reg <= wb_dat_i[`DATA_TIMEOUT_W-1:0];
                     `blksize: block_size_reg <= wb_dat_i[`BLKSIZE_W-1:0];
                     `controller: controll_setting_reg <= wb_dat_i[0:0];
                     `cmd_iser: cmd_int_enable_reg <= wb_dat_i[4:0];
@@ -179,7 +183,8 @@ always @(posedge wb_clk_i or posedge wb_rst_i)begin
                 `blksize: wb_dat_o <= block_size_reg;
                 `voltage: wb_dat_o <= voltage_controll_reg;
                 `reset: wb_dat_o <= software_reset_reg;
-                `timeout: wb_dat_o <= timeout_reg;
+                `cmd_timeout: wb_dat_o <= cmd_timeout_reg;
+                `data_timeout: wb_dat_o <= data_timeout_reg;
                 `cmd_isr: wb_dat_o <= cmd_int_status_reg;
                 `cmd_iser: wb_dat_o <= cmd_int_enable_reg;
                 `clock_d: wb_dat_o <= clock_divider_reg;

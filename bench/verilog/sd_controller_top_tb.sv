@@ -297,14 +297,17 @@ function [31:0] reg_addr;
 endfunction
 
 task setup_core;
-    input integer timeout;
+    input integer cmd_timeout;
+    input integer data_timeout;
     begin
         hard_reset;
         
         //reset Core
         wbm_write(reg_addr(`reset), 1, 4'hF, 1, 0, $random%5);
         //setup timeout
-        wbm_write(reg_addr(`timeout), timeout, 4'hF, 1, 0, $random%5);
+        wbm_write(reg_addr(`cmd_timeout), cmd_timeout, 4'hF, 1, 0, $random%5);
+        //setup data timeout
+        wbm_write(reg_addr(`data_timeout), data_timeout, 4'hF, 1, 0, $random%5);
         //setup clock devider
         wbm_write(reg_addr(`clock_d), 16'h0, 4'hF, 1, 0, $random%5);
         //start Core
@@ -383,7 +386,7 @@ task test_send_cmd;
         //                                                            //
         ////////////////////////////////////////////////////////////////
 
-        setup_core(16'hffff);
+        setup_core(16'hffff, 16'hffff);
         
         send_cmd(0, 0, status);
         `ASSERT_CMD_STATUS(status)
@@ -398,7 +401,7 @@ task init_card;
     integer resp_data;
     begin
         
-        setup_core(16'h2ff);
+        setup_core(16'h2ff, 16'hfff);
         
         //CMD 0 Reset card
         send_cmd(0, 0, status);
