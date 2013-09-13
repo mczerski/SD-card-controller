@@ -50,7 +50,7 @@
 `define BLKSIZE_W 12
 `define BLKCNT_W 16
 `define CMD_TIMEOUT_W 24
-`define DATA_TIMEOUT_W 16
+`define DATA_TIMEOUT_W 24
 
 //cmd module interrupts
 `define INT_CMD_SIZE 5
@@ -100,6 +100,6 @@
 `define dst_src_addr 8'h60
 
 //wb module defines
-`define RESET_BLOCK_SIZE 512
+`define RESET_BLOCK_SIZE 511
 `define RESET_CLK_DIV 0
 `define SUPPLY_VOLTAGE_mV 3300

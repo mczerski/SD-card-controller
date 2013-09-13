@@ -80,7 +80,7 @@ reg [3:0] crc_in;
 reg crc_en;
 reg crc_rst;
 wire [15:0] crc_out [3:0];
-reg [15:0] transf_cnt;
+reg [`BLKSIZE_W-1+4:0] transf_cnt;
 parameter SIZE = 6;
 reg [SIZE-1:0] state;
 reg [SIZE-1:0] next_state;
@@ -216,7 +216,7 @@ begin: FSM_OUT
                 blkcnt_reg <= blkcnt;
                 byte_alignment_reg <= byte_alignment;
                 blksize_reg <= blksize;
-                data_cycles <= (bus_4bit ? (blksize << 1) : (blksize << 3));
+                data_cycles <= (bus_4bit ? (blksize << 1) + 2 : (blksize << 3) + 8);
                 bus_4bit_reg <= bus_4bit;
             end
             WRITE_DAT: begin
@@ -318,7 +318,7 @@ begin: FSM_OUT
                 next_block <= (blkcnt_reg != 0);
                 if (next_state != WRITE_BUSY) begin
                     blkcnt_reg <= blkcnt_reg - `BLKCNT_W'h1;
-                    byte_alignment_reg <= byte_alignment_reg + blksize_reg[1:0];
+                    byte_alignment_reg <= byte_alignment_reg + blksize_reg[1:0] + 2'b1;
                     crc_rst <= 1;
                     crc_c <= 16;
                     crc_status <= 0;
@@ -371,7 +371,7 @@ begin: FSM_OUT
                         if (crc_c == 0) begin
                             next_block <= (blkcnt_reg != 0);
                             blkcnt_reg <= blkcnt_reg - `BLKCNT_W'h1;
-                            byte_alignment_reg <= byte_alignment_reg + blksize_reg[1:0];
+                            byte_alignment_reg <= byte_alignment_reg + blksize_reg[1:0] + 2'b1;
                             crc_rst <= 1;
                         end
                     end
