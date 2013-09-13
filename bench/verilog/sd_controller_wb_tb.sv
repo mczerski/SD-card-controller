@@ -123,6 +123,7 @@ end
 task wb_write;
     input integer data;
     input integer addr;
+    input [3:0] sel;
     begin
         //wait for falling edge of wb_clk_i
         wait(wb_clk_i == 1);
@@ -130,7 +131,7 @@ task wb_write;
         
         wb_dat_i = data;
         wb_adr_i = addr;
-        wb_sel_i = 4'b1111;
+        wb_sel_i = sel;
         wb_we_i = 1;
         wb_cyc_i = 1;
         wb_stb_i = 1;
@@ -223,8 +224,9 @@ begin
     //check argument register and cmd_start signal
     fork
         begin
-            wb_write(32'h01020304, `argument);
+            wb_write(32'h01020304, `argument, 4'hf);
             assert(argument_reg == 32'h01020304);
+            assert(command_reg != `CMD_REG_SIZE'h0304);
         end
         begin
             wait(cmd_start == 1);
@@ -234,8 +236,8 @@ begin
     join
     
     //check command register
-    wb_write(16'h0405, `command);
-    assert(command_reg == 16'h0405);
+    wb_write(`CMD_REG_SIZE'h0405, `command, 4'hf);
+    assert(command_reg == `CMD_REG_SIZE'h0405);
     
     //check response_0 register
     response_0_reg = 32'h04050607;
@@ -254,23 +256,23 @@ begin
     wb_read_check(32'h0708090a, `resp3, `__LINE__);
     
     //check controller register
-    wb_write(1'h1, `controller);
+    wb_write(1'h1, `controller, 4'hf);
     assert(controll_setting_reg == 1'h1);
     
     //check timeout register
-    wb_write(`CMD_TIMEOUT_W'h0b0c, `cmd_timeout);
+    wb_write(`CMD_TIMEOUT_W'h0b0c, `cmd_timeout, 4'hf);
     assert(cmd_timeout_reg == `CMD_TIMEOUT_W'h0b0c);
     
     //check data timeout register
-    wb_write(16'h0c0b, `data_timeout);
-    assert(data_timeout_reg == 16'h0c0b);
+    wb_write(`DATA_TIMEOUT_W'h0c0b, `data_timeout, 4'hf);
+    assert(data_timeout_reg == `DATA_TIMEOUT_W'h0c0b);
     
     //check clock_devider register
-    wb_write(8'h0d, `clock_d);
+    wb_write(8'h0d, `clock_d, 4'hf);
     assert(clock_divider_reg == 8'h0d);
     
     //check reset register
-    wb_write(1'h1, `reset);
+    wb_write(1'h1, `reset, 4'hf);
     assert(software_reset_reg == 1'h1);
 
     //check voltage register
@@ -282,7 +284,7 @@ begin
     //check cmd_isr register write
     fork
         begin
-            wb_write(32'h0, `cmd_isr);
+            wb_write(32'h0, `cmd_isr, 4'hf);
         end
         begin
             wait(cmd_int_rst == 1);
@@ -295,13 +297,13 @@ begin
     wb_read_check(5'h1a, `cmd_isr, `__LINE__);
     
     //check cmd_iser register
-    wb_write(5'h15, `cmd_iser);
+    wb_write(5'h15, `cmd_iser, 4'hf);
     assert(cmd_int_enable_reg == 5'h15);
     
     //check data_isr register write
     fork
         begin
-            wb_write(32'h0, `data_isr);
+            wb_write(32'h0, `data_isr, 4'hf);
         end
         begin
             wait(data_int_rst == 1);
@@ -314,21 +316,33 @@ begin
     wb_read_check(3'h6, `data_isr, `__LINE__);
     
     //check data_iser register
-    wb_write(3'h5, `data_iser);
+    wb_write(3'h5, `data_iser, 4'hf);
     assert(data_int_enable_reg == 3'h5);
     
     //check blksize register
-    wb_write(12'habc, `blksize);
+    wb_write(12'habc, `blksize, 4'hf);
     assert(block_size_reg == 12'habc); 
     
     //check blkcnt register
-    wb_write(16'h1011, `blkcnt);
+    wb_write(16'h1011, `blkcnt, 4'hf);
     assert(block_count_reg == 16'h1011); 
     
     //check dst_src_addr register
-    wb_write(32'h11121314, `dst_src_addr);
+    wb_write(32'h11121314, `dst_src_addr, 4'hf);
     assert(dma_addr_reg == 32'h11121314); 
-
+    
+    //////////////////////////////////////////////////////////////////
+    //writes with select
+    //check dst_src_addr register
+    wb_write(32'hffffffff, `dst_src_addr, 4'hf);
+    wb_write(32'h01020304, `dst_src_addr, 4'h1);
+    assert(dma_addr_reg == 32'hffffff04);
+    
+    //check blkcnt register
+    wb_write(-1, `blkcnt, 4'hf);
+    wb_write(0, `blkcnt, 4'h2);
+    assert(block_count_reg == `BLKCNT_W'h00ff);
+    
     #(10*TCLK) $display("sd_controller_wb_tb finish ...");
     $finish;
     
