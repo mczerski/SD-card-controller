@@ -113,7 +113,7 @@ task sd_card_send;
         assert(width == 1 || width == 4) else $stop;
         while (blocks) begin
             cycles = bytes*8/width;
-            crc = {0, 0, 0, 0};
+            crc = '{0, 0, 0, 0};
             //start bits
             DAT_dat_i = get_1or4_bits(DATA_START, width);
             #SD_TCLK;
@@ -185,8 +185,8 @@ task sd_card_receive;
         data_idx = 0;
         while(blocks) begin
             received_data = 0;
-            crc = {0, 0, 0, 0};
-            crc_in = {0, 0, 0, 0};
+            crc = '{0, 0, 0, 0};
+            crc_in = '{0, 0, 0, 0};
             //wait for start bits
             wait (DAT_dat_o == get_1or4_bits(DATA_START, width));
             assert(DAT_oe_o == 1);
@@ -428,16 +428,15 @@ task check_fifo_read;
     end
 endtask
 
-task read_test;
+task start_read;
     input integer bsize;
     input integer bcnt;
     input integer alignment;
     input integer b_4bit;
-    input bit crc_failure;
-    begin
+    begin 
     
-		assert(bsize > 0 && bcnt > 0);
-		rst = 1;
+        assert(bsize > 0 && bcnt > 0);
+        rst = 1;
         #(2*SD_TCLK);
         rst = 0;
         blksize = bsize-1;
@@ -453,6 +452,19 @@ task read_test;
         start = 0;
         assert(busy == 1);
         
+    end
+endtask
+
+task read_test;
+    input integer bsize;
+    input integer bcnt;
+    input integer alignment;
+    input integer b_4bit;
+    input bit crc_failure;
+    begin
+    
+        start_read(bsize, bcnt, alignment, b_4bit);
+        
         #(20*SD_TCLK);
         
         fork
@@ -466,16 +478,15 @@ task read_test;
     end
 endtask
 
-task write_test;
+task start_write;
     input integer bsize;
     input integer bcnt;
     input integer alignment;
-    input integer b_4bit;
-    input bit crc_failure;
+    input integer b_4bit;   
     begin
     
-		assert(bsize > 0 && bcnt > 0);
-		rst = 1;
+        assert(bsize > 0 && bcnt > 0);
+        rst = 1;
         #(2*SD_TCLK);
         rst = 0;
         blksize = bsize-1;
@@ -490,6 +501,19 @@ task write_test;
         blkcnt = 0;
         start = 0;
         assert(busy == 1);
+        
+    end
+endtask
+
+task write_test;
+    input integer bsize;
+    input integer bcnt;
+    input integer alignment;
+    input integer b_4bit;
+    input bit crc_failure;
+    begin
+    
+        start_write(bsize, bcnt, alignment, b_4bit);
         fork
             check_fifo_read(bsize, crc_failure ? 1 : bcnt, alignment, b_4bit ? 4 : 1);
             sd_card_receive(bsize, crc_failure ? 1 : bcnt, alignment, b_4bit ? 4 : 1, crc_failure ? 3'b101 : 3'b010);
@@ -499,6 +523,15 @@ task write_test;
         #(2*SD_TCLK);
         assert(busy == 0);
         
+    end
+endtask
+
+task abort;
+    begin
+        start = 3;
+        #SD_TCLK;
+        start = 0;
+        assert(busy == 0);
     end
 endtask
 
@@ -678,8 +711,67 @@ begin
     write_test(64, 3, 0, 1, 0);
     
     //////////////////////////////////////////////////////////////
-    //      TODO: xfer stopped in the middle
+    //      xfer stopped in the middle
     
+    //write stopped when sending data
+    start_write(32, 1, 0, 1);
+    wait(DAT_dat_o == 0);
+    #(SD_TCLK/2);
+    #((2*16)*SD_TCLK); //half of data transfer
+    
+    abort;
+    
+    //write stopped when waiting for crc status
+    start_write(32, 1, 0, 1);
+    wait(DAT_dat_o == 0);
+    wait(DAT_oe_o == 0);
+    #(SD_TCLK/2);
+    #(3*SD_TCLK);
+    
+    abort;
+
+    //write stopped when receiving crc status
+    start_write(32, 1, 0, 1);
+    wait(DAT_dat_o == 0);
+    wait(DAT_oe_o == 0);
+    #(SD_TCLK/2);
+    
+    //card sends crc status
+    DAT_dat_i[0] = 0;
+    #(2*SD_TCLK);
+    DAT_dat_i[0] = 1;
+    abort;
+    
+    //write stopped when card busy
+    start_write(32, 1, 0, 1);
+    wait(DAT_dat_o == 0);
+    wait(DAT_oe_o == 0);
+    #(SD_TCLK/2);
+    
+    //card sends crc status (0010)
+    DAT_dat_i[0] = 0;
+    #(2*SD_TCLK);
+    DAT_dat_i[0] = 1;
+    #SD_TCLK;
+    DAT_dat_i[0] = 0;
+    #(4*SD_TCLK);
+    assert(busy == 1);
+    abort;
+
+    //read stopped when waiting for data
+    start_read(32, 1, 0, 1);
+    #(10*SD_TCLK);
+    
+    abort;
+    
+    //read stopped when receiving data
+    start_read(32, 1, 0, 1);
+    #(10*SD_TCLK);
+    DAT_dat_i[0] = 0;
+    #(10*SD_TCLK);
+    
+    abort;
+
     #(100*SD_TCLK) $display("sd_data_serial_host_tb finish ...");
     $finish;
     

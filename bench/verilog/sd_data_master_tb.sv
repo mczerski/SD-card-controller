@@ -362,13 +362,24 @@ begin
     start_read;
 
     wait(d_write_o == 1 && d_read_o == 1);
-	check_failed_read((1 << `INT_DATA_EI) | (1 << `INT_DATA_CTE));
-   
+    check_failed_read((1 << `INT_DATA_EI) | (1 << `INT_DATA_CTE));
+    tx_fifo_full_i = 0;
+    
     //write test
     start_write;
     
     wait(d_write_o == 1 && d_read_o == 1);
-	check_failed_write((1 << `INT_DATA_EI) | (1 << `INT_DATA_CTE));
+    check_failed_write((1 << `INT_DATA_EI) | (1 << `INT_DATA_CTE));
+
+    //timeout=0 test
+    ////////////////////////////////////////////////////////////////////////
+    timeout_i = 0;
+    #SD_TCLK;
+    
+    test_read(1);
+    test_write(1);
+    
+    timeout_i = 100;
 
     #(10*SD_TCLK) $display("sd_data_master_tb finish ...");
     $finish;

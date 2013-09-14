@@ -318,7 +318,7 @@ sd_fifo_filler sd_fifo_filler0(
     .wb_full_o    (tx_fifo_full)
     );
 
-assign xfersize = block_size_reg_wb_clk * (block_count_reg_wb_clk + 1);
+assign xfersize = (block_size_reg_wb_clk + 1'b1) * (block_count_reg_wb_clk + 1'b1);
 sd_wb_sel_ctrl sd_wb_sel_ctrl0(
         .wb_clk         (wb_clk_i),
         .rst            (wb_rst_i | software_reset_reg_sd_clk[0]),

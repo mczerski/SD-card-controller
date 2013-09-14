@@ -205,7 +205,7 @@ begin
             EXECUTE: begin
                 start_xfr_o <= 0;
                 watchdog <= watchdog + `CMD_TIMEOUT_W'd1;
-                if (watchdog > timeout_reg) begin
+                if (timeout_reg && watchdog >= timeout_reg) begin
                     int_status_reg[`INT_CMD_CTE] <= 1;
                     int_status_reg[`INT_CMD_EI] <= 1;
                     go_idle_o <= 1;

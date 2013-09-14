@@ -199,7 +199,7 @@ begin
                         d_read_o <= 1;
                     end
                 end
-                if (watchdog > timeout_reg) begin
+                if (timeout_reg && watchdog >= timeout_reg) begin
                     int_status_o[`INT_DATA_CTE] <= 1;
                     int_status_o[`INT_DATA_EI] <= 1;
                     trans_done <= 1;

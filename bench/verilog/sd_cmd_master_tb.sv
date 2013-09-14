@@ -380,6 +380,35 @@ begin
     #SD_TCLK;
     assert(int_status_o == 1);
     #SD_TCLK;
+    
+    //test timeout=0
+    start_i = 1;
+    argument_i = 32'hdeadbeef;
+    command_i = 16'h0501; //CMD5
+    timeout_i = 0;
+    #SD_TCLK;
+    start_i = 0;
+    argument_i = 0;
+    command_i = 0;
+    timeout_i = 0;
+    assert(start_xfr_o == 1);
+    assert(setting_o == 2'b01);
+    assert(go_idle_o == 0);
+    assert(cmd_o == 40'h45deadbeef);
+    #(10*SD_TCLK);
+    finish_i = 1;
+    response_i = 120'h0102030405060708090a0b0c0d0e0f;
+    #SD_TCLK;
+    finish_i = 0;
+    response_i = 0;
+    assert(start_xfr_o == 0);
+    assert(go_idle_o == 0);
+    assert(int_status_o == 1);
+    assert(response_0_o == 32'h01020304);
+    assert(response_1_o == 32'h05060708);
+    assert(response_2_o == 32'h090a0b0c);
+    assert(response_3_o == 32'h0d0e0f00);
+    #SD_TCLK;
 
     #(10*SD_TCLK) $display("sd_cmd_master_tb finish ...");
     $finish;

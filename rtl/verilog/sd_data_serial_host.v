@@ -131,8 +131,6 @@ begin: FSM_COMBO
         WRITE_DAT: begin
             if (transf_cnt >= data_cycles+21 && start_bit)
                 next_state <= WRITE_CRC;
-            else if (start == 2'b11)
-                next_state <= IDLE;
             else
                 next_state <= WRITE_DAT;
         end
@@ -161,13 +159,14 @@ begin: FSM_COMBO
                 next_state <= READ_WAIT;
             else if (transf_cnt == data_cycles+17)
                 next_state <= IDLE;
-            else if (start == 2'b11)
-                next_state <= IDLE;
             else
                 next_state <= READ_DAT;
         end
         default: next_state <= IDLE;
     endcase
+    //abort
+    if (start == 2'b11)
+        next_state <= IDLE;
 end
 
 always @(posedge sd_clk or posedge rst)
@@ -216,7 +215,7 @@ begin: FSM_OUT
                 blkcnt_reg <= blkcnt;
                 byte_alignment_reg <= byte_alignment;
                 blksize_reg <= blksize;
-                data_cycles <= (bus_4bit ? (blksize << 1) + 2 : (blksize << 3) + 8);
+                data_cycles <= (bus_4bit ? (blksize << 1) + `BLKSIZE_W'd2 : (blksize << 3) + `BLKSIZE_W'd8);
                 bus_4bit_reg <= bus_4bit;
             end
             WRITE_DAT: begin
