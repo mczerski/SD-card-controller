@@ -100,6 +100,6 @@
 `define dst_src_addr 8'h60
 
 //wb module defines
-`define RESET_BLOCK_SIZE 511
+`define RESET_BLOCK_SIZE 12'd511
 `define RESET_CLK_DIV 0
 `define SUPPLY_VOLTAGE_mV 3300
