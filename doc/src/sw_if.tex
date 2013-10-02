@@ -58,8 +58,9 @@
                 \texttt{response1} & \texttt{0x0C} & R & bits 63-32 of the response \\ \hline
                 \texttt{response2} & \texttt{0x10} & R & bits 95-64 of the response \\ \hline
                 \texttt{response3} & \texttt{0x14} & R & bits 119-96 of the response \\ \hline
+                \texttt{data\_timeout} & \texttt{0x18} & RW & data xfer timeout configuration \\ \hline
                 \texttt{control} & \texttt{0x1C} & RW & IP core control settings \\ \hline
-                \texttt{timeout} & \texttt{0x20} & RW & timeout configuration \\ \hline
+                \texttt{cmd\_timeout} & \texttt{0x20} & RW & command xfer timeout configuration \\ \hline
                 \texttt{clock\_devider} & \texttt{0x24} & RW & MMC/SD interface clock devider \\ \hline
                 \texttt{reset} & \texttt{0x28} & RW & software reset \\ \hline
                 \texttt{voltage} & \texttt{0x2C} & R & power control information \\ \hline
@@ -131,6 +132,26 @@
         \label{tab:resp_reg}
     \end{table}
     
+    \subsubsection{Data xfer timeout register}
+    \label{sec:data_timeout_reg}
+    
+    Data timeout register configures data transaction watchdog counter. If any data transaction will last longer than configured timeout, 
+    interrupt will be generated. Value in timeout register represents the number of \texttt{sd\_clk\_o\_pad} clock cyckles. 
+    Register value is calculated by following formula:
+    \begin{equation}
+    REG = \frac{timeout[s] * frequency_{\texttt{sd\_clk\_i\_pad}}[Hz]}{(2*(\texttt{clock\_devider} + 1))}
+    \end{equation} 
+    
+    \begin{table}[H]
+    \caption{Data xfer timeout register}
+        \begin{tabular}{m{1.3cm}|m{2cm}|m{1cm}|m{8cm}}
+                \rowcolor[gray]{0.7} bit \# & reset value & access & description \\ \hline \hline
+                \texttt{[31:24]} & & & reserved \\ \hline
+                \texttt{[23:0]} & \texttt{0x0} & RW & timeout value (when 0 - timeout is disabled) \\ \hline
+                \hline
+        \end{tabular}
+        \label{tab:timeout_reg}
+    \end{table}    
 
     \subsubsection{Control register}
     \label{sec:control_reg}
@@ -146,21 +167,22 @@
         \label{tab:control_reg}
     \end{table}
     
-    \subsubsection{Timeout register}
+    \subsubsection{Command xfer timeout register}
     \label{sec:timeout_reg}
     
-    Timeout register configures transaction watchdog counter. If any transaction will last longer than configured timeout, interrupt will be generated.
-    Value in timeout register represents the number of \texttt{sd\_clk\_o\_pad} clock cyckles. Register value is calculated by following formula:
+    Command timeout register configures command transaction watchdog counter. If any command transaction will last longer than configured timeout, 
+    interrupt will be generated. Value in timeout register represents the number of \texttt{sd\_clk\_o\_pad} clock cyckles. 
+    Register value is calculated by following formula:
     \begin{equation}
     REG = \frac{timeout[s] * frequency_{\texttt{sd\_clk\_i\_pad}}[Hz]}{(2*(\texttt{clock\_devider} + 1))}
     \end{equation} 
     
     \begin{table}[H]
-    \caption{Timeout register}
+    \caption{Command xfer timeout register}
         \begin{tabular}{m{1.3cm}|m{2cm}|m{1cm}|m{8cm}}
                 \rowcolor[gray]{0.7} bit \# & reset value & access & description \\ \hline \hline
                 \texttt{[31:16]} & & & reserved \\ \hline
-                \texttt{[15:0]} & \texttt{0x0} & RW & timeout value \\ \hline
+                \texttt{[15:0]} & \texttt{0x0} & RW & timeout value (when 0 - timeout is disabled) \\ \hline
                 \hline
         \end{tabular}
         \label{tab:timeout_reg}
@@ -313,13 +335,17 @@
     \label{sec:blocksize_reg}
     
     This register controls the number of bytes to write/read in a single block. Data transaction will transmit number of bytes equal to size of block times blocks count.
-    
+    Register value is calculated by following formula:
+    \begin{equation}
+    REG = size\_of\_block - 1
+    \end{equation} 
+        
     \begin{table}[H]
     \caption{Block size register}
         \begin{tabular}{m{1.3cm}|m{2cm}|m{1cm}|m{8cm}}
                 \rowcolor[gray]{0.7} bit \# & reset value & access & description \\ \hline \hline
                 \texttt{[31:12]} & & & reserved \\ \hline
-                \texttt{[11:0]} & \texttt{0x200} & RW & number of byes in a single block \\ \hline
+                \texttt{[11:0]} & \texttt{0x200} & RW & number of byes in a single block minus 1\\ \hline
                 \hline
         \end{tabular}
         \label{tab:blocksize_reg}
@@ -339,7 +365,7 @@
         \begin{tabular}{m{1.3cm}|m{2cm}|m{1cm}|m{8cm}}
                 \rowcolor[gray]{0.7} bit \# & reset value & access & description \\ \hline \hline
                 \texttt{[31:16]} & & & reserved \\ \hline
-                \texttt{[15:0]} & \texttt{0x0} & RW & number of blocks in data transaction plus 1 \\ \hline
+                \texttt{[15:0]} & \texttt{0x0} & RW & number of blocks in data transaction minus 1 \\ \hline
                 \hline
         \end{tabular}
         \label{tab:blockcnt_reg}
