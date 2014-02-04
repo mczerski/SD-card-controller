@@ -63,10 +63,8 @@ the driver is named ocsdc and is located in drivers/mmc/host directory.
 TODO:
 -----
 
-- top level testbench cleanup (sd_controller_top_tb.sv)
 - rx/tx fifo treshold to do block transfers rather than many signle word transfers
 - maybe one fifo rathen than two fifos (rx and tx) would suffice since the transfer 
 	between card and controller is always half-duplex
 - read only and card detect signals support
-- timeout watchdog for data transfers
 
