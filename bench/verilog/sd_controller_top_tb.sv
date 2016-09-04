@@ -73,7 +73,13 @@
 `define CRD 16'h20
 `define CWD 16'h40
 
-module sd_controller_top_tb(
+module sd_controller_top_tb
+#(parameter ramdisk="../bin/ramdisk2.hex",
+  parameter sd_model_log_file="../log/sd_model.log",
+  parameter wb_m_mon_log_file={`LOG_DIR, "/sdc_tb_wb_m_mon.log"},
+  parameter wb_s_mon_log_file={`LOG_DIR, "/sdc_tb_wb_s_mon.log"},
+  parameter wb_memory_file={`BIN_DIR, "/wb_memory.txt"})
+(
 
 );
 
@@ -114,7 +120,8 @@ tri [3:0] sd_dat;
 assign sd_cmd = sd_cmd_oe ? cmdIn: 1'bz;
 assign sd_dat =  sd_dat_oe  ? datIn : 4'bz;
 
-sdModel sdModelTB0(
+sdModel #(.ramdisk (ramdisk),
+	  .log_file (sd_model_log_file)) sdModelTB0(
     .sdClk(sd_clk_pad_o),
     .cmd(sd_cmd),
     .dat(sd_dat)
@@ -171,7 +178,9 @@ WB_MASTER_BEHAVIORAL wb_master0(
     .CAB_O() //Not in use
     );
 
-WB_SLAVE_BEHAVIORAL wb_slave0(
+WB_SLAVE_BEHAVIORAL
+  #(.wb_memory_file (wb_memory_file))
+   wb_slave0(
     .CLK_I(wb_clk),
     .RST_I(wb_rst),
     .ACK_O(wbm_sdm_ack_i),
@@ -232,14 +241,14 @@ WB_BUS_MON sdc_eth_master_bus_mon0(
 
 task open_log_files;
     begin
-        wb_s_mon_log_file_desc = $fopen({`LOG_DIR, "/sdc_tb_wb_s_mon.log"});
+        wb_s_mon_log_file_desc = $fopen(wb_s_mon_log_file);
         assert(wb_s_mon_log_file_desc >= 2);
         $fdisplay(wb_s_mon_log_file_desc, "============== WISHBONE Slave Bus Monitor error log ==============");
         $fdisplay(wb_s_mon_log_file_desc, " ");
         $fdisplay(wb_s_mon_log_file_desc, "   Only ERRONEOUS conditions are logged !");
         $fdisplay(wb_s_mon_log_file_desc, " ");
 
-        wb_m_mon_log_file_desc = $fopen({`LOG_DIR, "/sdc_tb_wb_m_mon.log"});
+        wb_m_mon_log_file_desc = $fopen(wb_m_mon_log_file);
         assert(wb_m_mon_log_file_desc >= 2);
         $fdisplay(wb_m_mon_log_file_desc, "============= WISHBONE Master Bus Monitor  error log =============");
         $fdisplay(wb_m_mon_log_file_desc, " ");

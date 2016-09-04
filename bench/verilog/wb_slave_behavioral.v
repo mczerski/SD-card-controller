@@ -58,6 +58,7 @@
 
 `include "wb_model_defines.h"
 module WB_SLAVE_BEHAVIORAL
+#(parameter wb_memory_file="")
 (
 	CLK_I,
 	RST_I,
@@ -101,7 +102,7 @@ reg     `WB_DATA_TYPE wb_memory [0:1048575]; // WB memory - 20 addresses connect
 reg     `WB_DATA_TYPE mem_wr_data_out;
 reg     `WB_DATA_TYPE mem_rd_data_in;
 
-initial $readmemh({`BIN_DIR, "/wb_memory.txt"},wb_memory);
+initial $readmemh(wb_memory_file,wb_memory);
 
 
 /*------------------------------------------------------------------------------------------------------

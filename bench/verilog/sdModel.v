@@ -58,7 +58,9 @@
 `define RCV 6
 `define DATAS 5
 `define TRAN 4
-module sdModel(
+module sdModel
+#(parameter ramdisk="",
+  parameter log_file="") (
   input sdClk,
   tri cmd,
   tri [3:0] dat
@@ -178,7 +180,7 @@ reg [5:0] startUppCnt;
 
 reg q_start_bit;
 //Card initinCMd
-initial $readmemh("../bin/ramdisk2.hex",FLASHmem);
+initial $readmemh(ramdisk,FLASHmem);
 
 //integer k;
 //initial begin
@@ -944,7 +946,7 @@ integer sdModel_file_desc;
 
 initial
 begin
-  sdModel_file_desc = $fopen("../log/sd_model.log");
+  sdModel_file_desc = $fopen(log_file);
   if (sdModel_file_desc < 2)
   begin
     $display("*E Could not open/create testbench log file in /log/ directory!");
