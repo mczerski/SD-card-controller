@@ -188,7 +188,7 @@ static void ocsdc_setup_data_xfer(struct ocsdc * dev, struct mmc_cmd *cmd, struc
 		flush_dcache_range((void *)data->src, (void *)data->src+data->blocksize*data->blocks);
 		ocsdc_write(dev, OCSDC_DST_SRC_ADDR, (uint32_t)data->src);
 	}
-	ocsdc_write(dev, OCSDC_BLOCK_SIZE, data->blocksize);
+	ocsdc_write(dev, OCSDC_BLOCK_SIZE, data->blocksize-1);
 	ocsdc_write(dev, OCSDC_BLOCK_COUNT, data->blocks-1);
 
 	//printf("ocsdc_setup_read: addr: %x\n", (uint32_t)data->dest);
