@@ -192,6 +192,7 @@ begin: FSM_OUT
         data_index <= 0;
         next_block <= 0;
         blkcnt_reg <= 0;
+        blksize_reg <= 0;
         byte_alignment_reg <= 0;
         data_cycles <= 0;
         bus_4bit_reg <= 0;      
