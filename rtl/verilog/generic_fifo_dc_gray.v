@@ -209,7 +209,7 @@ generic_dpram  #(aw,dw) u0(
 	.rce(		1'b1		),
 	.oe(		1'b1		),
 	.raddr(		rp_bin[aw-1:0]	),
-	.do(		dout		),
+	.dout(		dout		),
 	.wclk(		wr_clk		),
 	.wrst(		!wr_rst		),
 	.wce(		1'b1		),
