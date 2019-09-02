@@ -51,7 +51,7 @@ reg sig;
 wire rise;
 wire fall;
 
-edge_detect edge_detect_dut(
+sd_edge_detect edge_detect_dut(
     .rst(rst),
     .clk(clk),
     .sig(sig), 

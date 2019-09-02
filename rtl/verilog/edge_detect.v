@@ -42,7 +42,7 @@
 ////                                                              ////
 //////////////////////////////////////////////////////////////////////
 
-module edge_detect (
+module sd_edge_detect (
     input rst,
     input clk, 
     input sig,
