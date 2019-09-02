@@ -171,26 +171,27 @@ always @(posedge wb_clk_i or posedge wb_rst_i)begin
         wb_dat_o <= 0;
     else
         if (wb_stb_i & wb_cyc_i) begin //CS
+            wb_dat_o <= 32'd0;
             case (wb_adr_i)
                 `argument: wb_dat_o <= argument_reg;
-                `command: wb_dat_o <= command_reg;
+                `command: wb_dat_o[`CMD_REG_SIZE-1:0] <= command_reg;
                 `resp0: wb_dat_o <= response_0_reg;
                 `resp1: wb_dat_o <= response_1_reg;
                 `resp2: wb_dat_o <= response_2_reg;
                 `resp3: wb_dat_o <= response_3_reg;
-                `controller: wb_dat_o <= controll_setting_reg;
-                `blksize: wb_dat_o <= block_size_reg;
+                `controller: wb_dat_o[0] <= controll_setting_reg;
+                `blksize: wb_dat_o[`BLKSIZE_W-1:0] <= block_size_reg;
                 `voltage: wb_dat_o <= voltage_controll_reg;
-                `reset: wb_dat_o <= software_reset_reg;
-                `cmd_timeout: wb_dat_o <= cmd_timeout_reg;
-                `data_timeout: wb_dat_o <= data_timeout_reg;
-                `cmd_isr: wb_dat_o <= cmd_int_status_reg;
-                `cmd_iser: wb_dat_o <= cmd_int_enable_reg;
-                `clock_d: wb_dat_o <= clock_divider_reg;
-                `capa: wb_dat_o <= capabilies_reg;
-                `data_isr: wb_dat_o <= data_int_status_reg;
-                `blkcnt: wb_dat_o <= block_count_reg;
-                `data_iser: wb_dat_o <= data_int_enable_reg;
+                `reset: wb_dat_o[0] <= software_reset_reg;
+                `cmd_timeout: wb_dat_o[`CMD_TIMEOUT_W-1:0] <= cmd_timeout_reg;
+                `data_timeout: wb_dat_o[`DATA_TIMEOUT_W-1:0] <= data_timeout_reg;
+                `cmd_isr: wb_dat_o[`INT_CMD_SIZE-1:0] <= cmd_int_status_reg;
+                `cmd_iser: wb_dat_o[`INT_CMD_SIZE-1:0] <= cmd_int_enable_reg;
+                `clock_d: wb_dat_o[7:0] <= clock_divider_reg;
+                `capa: wb_dat_o[15:0] <= capabilies_reg;
+                `data_isr: wb_dat_o[`INT_DATA_SIZE-1:0] <= data_int_status_reg;
+                `blkcnt: wb_dat_o[`BLKCNT_W-1:0] <= block_count_reg;
+                `data_iser: wb_dat_o[`INT_DATA_SIZE-1:0] <= data_int_enable_reg;
                 `dst_src_addr: wb_dat_o <= dma_addr_reg;
             endcase
         end
