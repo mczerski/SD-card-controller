@@ -384,6 +384,8 @@ always @ (posedge sdClk) begin
    qCmd<=cmd;
 end
 
+integer sdModel_file_desc;
+
 //read data and cmd on rising edge
 always @ (posedge sdClk) begin
  case(state)
@@ -941,8 +943,6 @@ always @ (negedge sdClk) begin
   end
 endcase
 end
-
-integer sdModel_file_desc;
 
 initial
 begin
