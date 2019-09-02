@@ -114,7 +114,7 @@ wire sd_cmd_oe;
 wire sd_dat_oe;
 wire cmdIn;
 wire [3:0] datIn;
-trireg sd_cmd;
+tri sd_cmd;
 tri [3:0] sd_dat;
 
 assign sd_cmd = sd_cmd_oe ? cmdIn: 1'bz;
