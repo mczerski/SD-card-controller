@@ -90,7 +90,7 @@ parameter WRITE_CRC  = 6'b000100;
 parameter WRITE_BUSY = 6'b001000;
 parameter READ_WAIT  = 6'b010000;
 parameter READ_DAT   = 6'b100000;
-reg [2:0] crc_status;
+reg [1:0] crc_status;
 reg busy_int;
 reg [`BLKCNT_W-1:0] blkcnt_reg;
 reg [1:0] byte_alignment_reg;
@@ -306,7 +306,7 @@ begin: FSM_OUT
                 DAT_oe_o <= 0;
                 if (crc_status < 3)
                     crc_s[crc_status] <= DAT_dat_reg[0];
-                crc_status <= crc_status + 3'h1;
+                crc_status <= crc_status + 2'h1;
                 busy_int <= 1;
             end
             WRITE_BUSY: begin
