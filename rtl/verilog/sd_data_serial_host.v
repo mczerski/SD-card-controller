@@ -338,14 +338,14 @@ begin: FSM_OUT
             READ_DAT: begin
                 if (transf_cnt < data_cycles) begin
                     if (bus_4bit_reg) begin
-                        we <= (data_index[2:0] == 7 || (transf_cnt == data_cycles-1  && !blkcnt_reg));
+                        we <= (data_index[2:0] == 7 || (transf_cnt == data_cycles-1  && !(|blkcnt_reg)));
                         data_out[31-(data_index[2:0]<<2)] <= DAT_dat_reg[3];
                         data_out[30-(data_index[2:0]<<2)] <= DAT_dat_reg[2];
                         data_out[29-(data_index[2:0]<<2)] <= DAT_dat_reg[1];
                         data_out[28-(data_index[2:0]<<2)] <= DAT_dat_reg[0];
                     end
                     else begin
-                        we <= (data_index == 31 || (transf_cnt == data_cycles-1  && !blkcnt_reg));
+                        we <= (data_index == 31 || (transf_cnt == data_cycles-1  && !(|blkcnt_reg)));
                         data_out[31-data_index] <= DAT_dat_reg[0];
                     end
                     data_index <= data_index + 5'h1;
