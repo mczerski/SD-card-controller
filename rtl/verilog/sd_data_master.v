@@ -90,34 +90,34 @@ begin: FSM_COMBO
     case(state)
         IDLE: begin
             if (start_tx_i == 1) begin
-                next_state <= START_TX_FIFO;
+                next_state = START_TX_FIFO;
             end
             else if (start_rx_i == 1) begin
-                next_state <= START_RX_FIFO;
+                next_state = START_RX_FIFO;
             end
             else begin
-                next_state <= IDLE;
+                next_state = IDLE;
             end
         end
         START_TX_FIFO: begin
             if (tx_fifo_full_i == 1 && xfr_complete_i == 0)
-                next_state <= DATA_TRANSFER;
+                next_state = DATA_TRANSFER;
             else
-                next_state <= START_TX_FIFO;
+                next_state = START_TX_FIFO;
         end
         START_RX_FIFO: begin
             if (xfr_complete_i == 0)
-                next_state <= DATA_TRANSFER;
+                next_state = DATA_TRANSFER;
             else
-                next_state <= START_RX_FIFO;
+                next_state = START_RX_FIFO;
         end
         DATA_TRANSFER: begin
             if (trans_done)
-                next_state <= IDLE;
+                next_state = IDLE;
             else
-                next_state <= DATA_TRANSFER;
+                next_state = DATA_TRANSFER;
         end
-        default: next_state <= IDLE;
+        default: next_state = IDLE;
     endcase
 end
 

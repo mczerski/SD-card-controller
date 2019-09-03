@@ -66,24 +66,24 @@ begin: FSM_COMBO
     case(state)
         IDLE: begin
             if (cmd_with_data_start_i & r_w_i)
-                next_state <= TRIGGER_XFER;
+                next_state = TRIGGER_XFER;
             else if (cmd_with_data_start_i)
-                next_state <= WAIT_FOR_CMD_INT;
+                next_state = WAIT_FOR_CMD_INT;
             else
-                next_state <= IDLE;
+                next_state = IDLE;
         end
         WAIT_FOR_CMD_INT: begin
             if (cmd_int_status_i[`INT_CMD_CC])
-                next_state <= TRIGGER_XFER;
+                next_state = TRIGGER_XFER;
             else if (cmd_int_status_i[`INT_CMD_EI])
-                next_state <= IDLE;
+                next_state = IDLE;
             else
-                next_state <= WAIT_FOR_CMD_INT;
+                next_state = WAIT_FOR_CMD_INT;
         end
         TRIGGER_XFER: begin
-            next_state <= IDLE;
+            next_state = IDLE;
         end
-        default: next_state <= IDLE;
+        default: next_state = IDLE;
     endcase
 end
 

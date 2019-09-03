@@ -122,25 +122,25 @@ begin: FSM_COMBO
     case(state)
         IDLE: begin
             if (start_i)
-                next_state <= EXECUTE;
+                next_state = EXECUTE;
             else
-                next_state <= IDLE;
+                next_state = IDLE;
         end
         EXECUTE: begin
             if ((finish_i && !busy_check) || go_idle_o)
-                next_state <= IDLE;
+                next_state = IDLE;
             else if (finish_i && busy_check)
-                next_state <= BUSY_CHECK;
+                next_state = BUSY_CHECK;
             else
-                next_state <= EXECUTE;
+                next_state = EXECUTE;
         end
         BUSY_CHECK: begin
             if (!busy_i)
-                next_state <= IDLE;
+                next_state = IDLE;
             else
-                next_state <= BUSY_CHECK;
+                next_state = BUSY_CHECK;
         end
-        default: next_state <= IDLE;
+        default: next_state = IDLE;
     endcase
 end
 

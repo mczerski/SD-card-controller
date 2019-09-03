@@ -133,52 +133,52 @@ begin: FSM_COMBO
     case(state)
         INIT: begin
             if (counter >= INIT_DELAY) begin
-                next_state <= IDLE;
+                next_state = IDLE;
             end
             else begin
-                next_state <= INIT;
+                next_state = INIT;
             end
         end
         IDLE: begin
             if (start_i) begin
-                next_state <= SETUP_CRC;
+                next_state = SETUP_CRC;
             end
             else begin
-                next_state <= IDLE;
+                next_state = IDLE;
             end
         end
         SETUP_CRC:
-            next_state <= WRITE;
+            next_state = WRITE;
         WRITE:
             if (counter >= BITS_TO_SEND && with_response) begin
-                next_state <= READ_WAIT;
+                next_state = READ_WAIT;
             end
             else if (counter >= BITS_TO_SEND) begin
-                next_state <= FINISH_WO;
+                next_state = FINISH_WO;
             end
             else begin
-                next_state <= WRITE;
+                next_state = WRITE;
             end
         READ_WAIT:
             if (!cmd_dat_reg) begin
-                next_state <= READ;
+                next_state = READ;
             end
             else begin
-                next_state <= READ_WAIT;
+                next_state = READ_WAIT;
             end
         FINISH_WO:
-            next_state <= IDLE;
+            next_state = IDLE;
         READ:
             if (counter >= resp_len+8) begin
-                next_state <= FINISH_WR;
+                next_state = FINISH_WR;
             end
             else begin
-                next_state <= READ;
+                next_state = READ;
             end
         FINISH_WR:
-            next_state <= IDLE;
+            next_state = IDLE;
         default: 
-            next_state <= INIT;
+            next_state = INIT;
     endcase
 end
 
