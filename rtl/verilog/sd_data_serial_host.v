@@ -122,51 +122,51 @@ begin: FSM_COMBO
     case(state)
         IDLE: begin
             if (start == 2'b01)
-                next_state <= WRITE_DAT;
+                next_state = WRITE_DAT;
             else if  (start == 2'b10)
-                next_state <= READ_WAIT;
+                next_state = READ_WAIT;
             else
-                next_state <= IDLE;
+                next_state = IDLE;
         end
         WRITE_DAT: begin
             if (transf_cnt >= data_cycles+21 && start_bit)
-                next_state <= WRITE_CRC;
+                next_state = WRITE_CRC;
             else
-                next_state <= WRITE_DAT;
+                next_state = WRITE_DAT;
         end
         WRITE_CRC: begin
             if (crc_status == 3)
-                next_state <= WRITE_BUSY;
+                next_state = WRITE_BUSY;
             else
-                next_state <= WRITE_CRC;
+                next_state = WRITE_CRC;
         end
         WRITE_BUSY: begin
             if (!busy_int && next_block && crc_ok)
-                next_state <= WRITE_DAT;
+                next_state = WRITE_DAT;
             else if (!busy_int)
-                next_state <= IDLE;
+                next_state = IDLE;
             else
-                next_state <= WRITE_BUSY;
+                next_state = WRITE_BUSY;
         end
         READ_WAIT: begin
             if (start_bit)
-                next_state <= READ_DAT;
+                next_state = READ_DAT;
             else
-                next_state <= READ_WAIT;
+                next_state = READ_WAIT;
         end
         READ_DAT: begin
             if (transf_cnt == data_cycles+17 && next_block && crc_ok)
-                next_state <= READ_WAIT;
+                next_state = READ_WAIT;
             else if (transf_cnt == data_cycles+17)
-                next_state <= IDLE;
+                next_state = IDLE;
             else
-                next_state <= READ_DAT;
+                next_state = READ_DAT;
         end
-        default: next_state <= IDLE;
+        default: next_state = IDLE;
     endcase
     //abort
     if (start == 2'b11)
-        next_state <= IDLE;
+        next_state = IDLE;
 end
 
 always @(posedge sd_clk or posedge rst)
