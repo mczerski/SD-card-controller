@@ -100,7 +100,7 @@ reg crc_ok;
 //-Internal Counterns
 integer counter;
 //-State Machine
-parameter STATE_SIZE = 10;
+parameter STATE_SIZE = 7;
 parameter
     INIT = 7'h00,
     IDLE = 7'h01,
