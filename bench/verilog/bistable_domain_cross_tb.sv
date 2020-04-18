@@ -85,27 +85,22 @@ begin
     $display("bistable_domain_cross_tb start ...");
     
     #(3*TCLK_B);
-    wait(clk_a == 0);
-    wait(clk_a == 1);
+    @(posedge clk_a) #(0.1*TCLK_A);
     in = 2'b11;
-    #(1.5*TCLK_A);
-    wait(clk_b == 0);
-    wait(clk_b == 1);
-    #(1.5*TCLK_B);
+    #TCLK_A;
+    @(posedge clk_b)#(1.5*TCLK_B);
     
     assert(out == 2'b11);
     
     #TCLK_B;
     assert(out == 2'b11);
-    
-    wait(clk_a == 0);
-    wait(clk_a == 1);
+ 
+    @(posedge clk_a) #(0.1*TCLK_A);
     in = 2'b00;
-    #(1.5*TCLK_A);
-    
-    wait(clk_b == 0);
-    wait(clk_b == 1);
-    #(1.5*TCLK_B);
+    #TCLK_A;
+ 
+    @(posedge clk_b)#(1.5*TCLK_B);
+    #TCLK_B;
 
     assert(out == 2'b00);
 

@@ -97,14 +97,11 @@ begin
     $display("monostable_domain_cross_tb start ...");
     
     for (i = 0; i < 2; i = i + 1) begin
-        wait(clk_a == 0);
-        wait(clk_a == 1);
+        @(posedge clk_a) #(0.1*TCLK_A);
         in = 1;
-        #(1.5*TCLK_A);
-        in = 0;
+        #TCLK_A in = 0;
     
-        wait(out0 == 1);
-        #(1.5*TCLK_B);
+        wait(out0 == 1) #(1.5*TCLK_B);
         assert(out0 == 0);
     end
     
@@ -113,17 +110,14 @@ begin
     rst1 = 0;
     
     for (i = 0; i < 2; i = i + 1) begin
-        wait(clk_b == 0);
-        wait(clk_b == 1);
+        @(posedge clk_b) #(0.1*TCLK_B);
         fork 
             begin
                 in = 1;
-                #(1.5*TCLK_B);
-                in = 0;
+                #TCLK_B in = 0;
             end
             begin
-                wait(out1 == 1);
-                #(1.5*TCLK_A);
+                wait(out1 == 1) #(1.5*TCLK_A);
                 assert(out1 == 0);
             end
         join

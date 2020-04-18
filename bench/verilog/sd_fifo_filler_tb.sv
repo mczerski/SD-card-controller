@@ -113,13 +113,13 @@ sd_fifo_filler sd_fifo_filler_dut(
 // Generating sd_clk clock
 always
 begin
-    sd_clk=0;
+    sd_clk = 0;
     forever #(SD_TCLK/2) sd_clk = ~sd_clk;
 end
 // Generating wb_clk clock
 always
 begin
-    wb_clk=0;
+    wb_clk = 0;
     forever #(WB_TCLK/2) wb_clk = ~wb_clk;
 end
 
@@ -132,22 +132,25 @@ always @(posedge wb_clk) begin
             assert(test_mem[wb_idx] == wbm_dat_o);
             assert(wbm_adr_o == adr_i + 4*wb_idx);
             wb_wait_counter <= 0;
-            wb_idx++;
+            wb_idx <= wb_idx + 1;
         end
-        wb_wait_counter++;
+        else
+            wb_wait_counter <= wb_wait_counter + 1;
     end
     else if (wbm_cyc_o && wbm_stb_o) begin
         if (wbm_ack_i) begin
             assert(wbm_adr_o == adr_i + 4*wb_idx);
             wb_wait_counter <= 0;
-            wb_idx++;
+            wb_idx <= wb_idx + 1;
         end
-        wb_wait_counter++;
+        else
+            wb_wait_counter <= wb_wait_counter + 1;
     end
     else begin
         wb_wait_counter <= 0;
     end
-    if (!en_rx_i && !en_tx_i) wb_idx = 0;
+    if (!en_rx_i && !en_tx_i)
+        wb_idx <= 0;
 end
     
 //fifo driver
@@ -157,27 +160,27 @@ always @(posedge sd_clk)
             wr_i <= 1;
             dat_i <= test_mem[fifo_drv_idx];
             fifo_drv_wait_counter <= 0;
-            fifo_drv_idx++;
+            fifo_drv_idx <= fifo_drv_idx + 1;
         end
         else begin
             wr_i <= 0;
             dat_i <= 0;
-            fifo_drv_wait_counter++;
+            fifo_drv_wait_counter <= fifo_drv_wait_counter + 1;
         end
     end
     else if (fifo_drv_ena) begin
         if (fifo_drv_wait_counter == 0) begin
             rd_i <= 1;
             assert(dat_o == test_mem[fifo_drv_idx]);
-            fifo_drv_wait_counter++;
-            fifo_drv_idx++;
+            fifo_drv_wait_counter <= fifo_drv_wait_counter + 1;
+            fifo_drv_idx <= fifo_drv_idx + 1;
         end
         else begin
             rd_i <= 0;
             if (fifo_drv_wait_counter == fifo_drv_wait)
                 fifo_drv_wait_counter <= 0;
             else
-                fifo_drv_wait_counter++;
+                fifo_drv_wait_counter <= fifo_drv_wait_counter + 1;
         end
     end
     else begin
@@ -200,7 +203,7 @@ begin
     wr_i = 0;
     rd_i = 0;
     
-    $display("sd_fifo_filler_tb finish ...");
+    $display("sd_fifo_filler_tb start ...");
     
     #(3*WB_TCLK);
     rst = 0;
