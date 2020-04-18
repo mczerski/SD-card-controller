@@ -126,8 +126,7 @@ task wb_write;
     input [3:0] sel;
     begin
         //wait for falling edge of wb_clk_i
-        wait(wb_clk_i == 1);
-        wait(wb_clk_i == 0);
+        @(negedge wb_clk_i);
         
         wb_dat_i = data;
         wb_adr_i = addr;
@@ -156,8 +155,7 @@ task wb_read_check;
     input integer line;
     begin
         //wait for falling edge of wb_clk_i
-        wait(wb_clk_i == 1);
-        wait(wb_clk_i == 0);
+        @(negedge wb_clk_i);
         
         wb_adr_i = addr;
         wb_sel_i = 4'b1111;
