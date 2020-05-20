@@ -112,14 +112,14 @@ WB_MASTER32 wbm_low_level
 reg `WRITE_STIM_TYPE  blk_write_data    [0:(`MAX_BLK_SIZE - 1)] ;
 // read stimulus buffer - addresses, tags, selects etc.
 reg `READ_STIM_TYPE   blk_read_data_in  [0:(`MAX_BLK_SIZE - 1)] ;
-// read return buffer - data and tags received while performing block reads
+// read return_type buffer - data and tags received while performing block reads
 reg `READ_RETURN_TYPE blk_read_data_out [0:(`MAX_BLK_SIZE - 1)] ;
 
 // single write task
 task wb_single_write ;
     input `WRITE_STIM_TYPE write_data ;
     input `WB_TRANSFER_FLAGS   write_flags ;
-    inout `WRITE_RETURN_TYPE return ;
+    inout `WRITE_RETURN_TYPE return_type ;
     reg in_use ;
     reg cab ;
     reg ok ;
@@ -128,16 +128,16 @@ task wb_single_write ;
     reg retry ;
 begin:main
 
-    return`TB_ERROR_BIT = 1'b0 ;
+    return_type`TB_ERROR_BIT = 1'b0 ;
     cab = 0 ;
-    return`CYC_ACTUAL_TRANSFER = 0 ;
+    return_type`CYC_ACTUAL_TRANSFER = 0 ;
     rty_count = 0 ;
 
     // check if task was called before previous call finished
     if ( in_use === 1 )
     begin
         $display("*E, wb_single_write routine re-entered! Time %t ", $time) ;
-        return`TB_ERROR_BIT = 1'b1 ;
+        return_type`TB_ERROR_BIT = 1'b1 ;
         disable main ;
     end
 
@@ -154,7 +154,7 @@ begin:main
         if ( ok !== 1 )
         begin
             $display("*E, Failed to initialize cycle! Routine wb_single_write, Time %t ", $time) ;
-            return`TB_ERROR_BIT = 1'b1 ;
+            return_type`TB_ERROR_BIT = 1'b1 ;
             disable main ;
         end
 
@@ -166,9 +166,9 @@ begin:main
             cyc_count = cyc_count - 1 ;
         end
 
-        wbm_low_level.wbm_write(write_data, return) ;
+        wbm_low_level.wbm_write(write_data, return_type) ;
 
-        if ( return`CYC_ERR === 0 && return`CYC_ACK === 0 && return`CYC_RTY === 1 && write_flags`WB_TRANSFER_AUTO_RTY === 1 && return`TB_ERROR_BIT === 0)
+        if ( return_type`CYC_ERR === 0 && return_type`CYC_ACK === 0 && return_type`CYC_RTY === 1 && write_flags`WB_TRANSFER_AUTO_RTY === 1 && return_type`TB_ERROR_BIT === 0)
         begin
             if ( rty_count === `WB_TB_MAX_RTY )
             begin
@@ -185,7 +185,7 @@ begin:main
             retry = 0 ;
 
         // if test bench error bit is set, there is no meaning in introducing subsequent wait states
-        if ( return`TB_ERROR_BIT !== 0 )
+        if ( return_type`TB_ERROR_BIT !== 0 )
         begin
             @(posedge CLK_I) ;
             wbm_low_level.end_cycle ;
@@ -210,7 +210,7 @@ endtask // wb_single_write
 task wb_single_read ;
     input `READ_STIM_TYPE read_data ;
     input `WB_TRANSFER_FLAGS   read_flags ;
-    inout `READ_RETURN_TYPE return ;
+    inout `READ_RETURN_TYPE return_type ;
     reg in_use ;
     reg cab ;
     reg ok ;
@@ -219,16 +219,16 @@ task wb_single_read ;
     reg retry ;
 begin:main
 
-    return`TB_ERROR_BIT = 1'b0 ;
+    return_type`TB_ERROR_BIT = 1'b0 ;
     cab = 0 ;
     rty_count = 0 ;
-    return`CYC_ACTUAL_TRANSFER = 0 ;
+    return_type`CYC_ACTUAL_TRANSFER = 0 ;
 
     // check if task was called before previous call finished
     if ( in_use === 1 )
     begin
         $display("*E, wb_single_read routine re-entered! Time %t ", $time) ;
-        return`TB_ERROR_BIT = 1'b1 ;
+        return_type`TB_ERROR_BIT = 1'b1 ;
         disable main ;
     end
 
@@ -245,7 +245,7 @@ begin:main
         if ( ok !== 1 )
         begin
             $display("*E, Failed to initialize cycle! Routine wb_single_read, Time %t ", $time) ;
-            return`TB_ERROR_BIT = 1'b1 ;
+            return_type`TB_ERROR_BIT = 1'b1 ;
             disable main ;
         end
 
@@ -257,9 +257,9 @@ begin:main
             cyc_count = cyc_count - 1 ;
         end
 
-        wbm_low_level.wbm_read(read_data, return) ;
+        wbm_low_level.wbm_read(read_data, return_type) ;
 
-        if ( return`CYC_ERR === 0 && return`CYC_ACK === 0 && return`CYC_RTY === 1 && read_flags`WB_TRANSFER_AUTO_RTY === 1 && return`TB_ERROR_BIT === 0)
+        if ( return_type`CYC_ERR === 0 && return_type`CYC_ACK === 0 && return_type`CYC_RTY === 1 && read_flags`WB_TRANSFER_AUTO_RTY === 1 && return_type`TB_ERROR_BIT === 0)
         begin
            if ( rty_count === `WB_TB_MAX_RTY )
             begin
@@ -278,7 +278,7 @@ begin:main
         end
 
         // if test bench error bit is set, there is no meaning in introducing subsequent wait states
-        if ( return`TB_ERROR_BIT !== 0 )
+        if ( return_type`TB_ERROR_BIT !== 0 )
         begin
             @(posedge CLK_I) ;
             wbm_low_level.end_cycle ;
@@ -303,7 +303,7 @@ endtask // wb_single_read
 task wb_RMW_read ;
     input `READ_STIM_TYPE read_data ;
     input `WB_TRANSFER_FLAGS   read_flags ;
-    inout `READ_RETURN_TYPE return ;
+    inout `READ_RETURN_TYPE return_type ;
     reg in_use ;
     reg cab ;
     reg ok ;
@@ -312,16 +312,16 @@ task wb_RMW_read ;
     reg retry ;
 begin:main
 
-    return`TB_ERROR_BIT = 1'b0 ;
+    return_type`TB_ERROR_BIT = 1'b0 ;
     cab = 0 ;
     rty_count = 0 ;
-    return`CYC_ACTUAL_TRANSFER = 0 ;
+    return_type`CYC_ACTUAL_TRANSFER = 0 ;
 
     // check if task was called before previous call finished
     if ( in_use === 1 )
     begin
         $display("*E, wb_RMW_read routine re-entered! Time %t ", $time) ;
-        return`TB_ERROR_BIT = 1'b1 ;
+        return_type`TB_ERROR_BIT = 1'b1 ;
         disable main ;
     end
 
@@ -338,7 +338,7 @@ begin:main
         if ( ok !== 1 )
         begin
             $display("*E, Failed to initialize cycle! Routine wb_RMW_read, Time %t ", $time) ;
-            return`TB_ERROR_BIT = 1'b1 ;
+            return_type`TB_ERROR_BIT = 1'b1 ;
             disable main ;
         end
 
@@ -350,9 +350,9 @@ begin:main
             cyc_count = cyc_count - 1 ;
         end
 
-        wbm_low_level.wbm_read(read_data, return) ;
+        wbm_low_level.wbm_read(read_data, return_type) ;
 
-        if ( return`CYC_ERR === 0 && return`CYC_ACK === 0 && return`CYC_RTY === 1 && read_flags`WB_TRANSFER_AUTO_RTY === 1 && return`TB_ERROR_BIT === 0)
+        if ( return_type`CYC_ERR === 0 && return_type`CYC_ACK === 0 && return_type`CYC_RTY === 1 && read_flags`WB_TRANSFER_AUTO_RTY === 1 && return_type`TB_ERROR_BIT === 0)
         begin
            if ( rty_count === `WB_TB_MAX_RTY )
             begin
@@ -371,7 +371,7 @@ begin:main
         end
 
         // if test bench error bit is set, there is no meaning in introducing subsequent wait states
-        if ( return`TB_ERROR_BIT !== 0 )
+        if ( return_type`TB_ERROR_BIT !== 0 )
         begin
             @(posedge CLK_I) ;
             wbm_low_level.end_cycle ;
@@ -399,7 +399,7 @@ endtask // wb_RMW_read
 task wb_RMW_write ;
     input `WRITE_STIM_TYPE write_data ;
     input `WB_TRANSFER_FLAGS   write_flags ;
-    inout `WRITE_RETURN_TYPE return ;
+    inout `WRITE_RETURN_TYPE return_type ;
     reg in_use ;
     reg cab ;
     reg ok ;
@@ -408,16 +408,16 @@ task wb_RMW_write ;
     reg retry ;
 begin:main
 
-    return`TB_ERROR_BIT = 1'b0 ;
+    return_type`TB_ERROR_BIT = 1'b0 ;
     cab = 0 ;
-    return`CYC_ACTUAL_TRANSFER = 0 ;
+    return_type`CYC_ACTUAL_TRANSFER = 0 ;
     rty_count = 0 ;
 
     // check if task was called before previous call finished
     if ( in_use === 1 )
     begin
         $display("*E, wb_RMW_write routine re-entered! Time %t ", $time) ;
-        return`TB_ERROR_BIT = 1'b1 ;
+        return_type`TB_ERROR_BIT = 1'b1 ;
         disable main ;
     end
 
@@ -436,7 +436,7 @@ begin:main
         if ( ok !== 1 )
         begin
             $display("*E, Failed to initialize cycle! Routine wb_single_write, Time %t ", $time) ;
-            return`TB_ERROR_BIT = 1'b1 ;
+            return_type`TB_ERROR_BIT = 1'b1 ;
             disable main ;
         end
 
@@ -448,9 +448,9 @@ begin:main
             cyc_count = cyc_count - 1 ;
         end
 
-        wbm_low_level.wbm_write(write_data, return) ;
+        wbm_low_level.wbm_write(write_data, return_type) ;
 
-        if ( return`CYC_ERR === 0 && return`CYC_ACK === 0 && return`CYC_RTY === 1 && write_flags`WB_TRANSFER_AUTO_RTY === 1 && return`TB_ERROR_BIT === 0)
+        if ( return_type`CYC_ERR === 0 && return_type`CYC_ACK === 0 && return_type`CYC_RTY === 1 && write_flags`WB_TRANSFER_AUTO_RTY === 1 && return_type`TB_ERROR_BIT === 0)
         begin
             if ( rty_count === `WB_TB_MAX_RTY )
             begin
@@ -467,7 +467,7 @@ begin:main
             retry = 0 ;
 
         // if test bench error bit is set, there is no meaning in introducing subsequent wait states
-        if ( return`TB_ERROR_BIT !== 0 )
+        if ( return_type`TB_ERROR_BIT !== 0 )
         begin
             @(posedge CLK_I) ;
             wbm_low_level.end_cycle ;
@@ -491,7 +491,7 @@ endtask // wb_RMW_write
 
 task wb_block_write ;
     input  `WB_TRANSFER_FLAGS write_flags ;
-    inout  `WRITE_RETURN_TYPE return ;
+    inout  `WRITE_RETURN_TYPE return_type ;
 
     reg in_use ;
     reg `WRITE_STIM_TYPE  current_write ;
@@ -502,21 +502,21 @@ task wb_block_write ;
     reg end_blk ;
 begin:main
 
-    return`CYC_ACTUAL_TRANSFER = 0 ;
+    return_type`CYC_ACTUAL_TRANSFER = 0 ;
     rty_count = 0 ;
 
     // check if task was called before previous call finished
     if ( in_use === 1 )
     begin
         $display("*E, wb_block_write routine re-entered! Time %t ", $time) ;
-        return`TB_ERROR_BIT = 1'b1 ;
+        return_type`TB_ERROR_BIT = 1'b1 ;
         disable main ;
     end
 
     if (write_flags`WB_TRANSFER_SIZE > `MAX_BLK_SIZE)
     begin
         $display("*E, number of transfers passed to wb_block_write routine exceeds defined maximum transaction length! Time %t", $time) ;
-        return`TB_ERROR_BIT = 1'b1 ;
+        return_type`TB_ERROR_BIT = 1'b1 ;
         disable main ;
     end
 
@@ -527,7 +527,7 @@ begin:main
     if ( ok !== 1 )
     begin
         $display("*E, Failed to initialize cycle! Routine wb_block_write, Time %t ", $time) ;
-        return`TB_ERROR_BIT = 1'b1 ;
+        return_type`TB_ERROR_BIT = 1'b1 ;
         disable main ;
     end
 
@@ -543,37 +543,37 @@ begin:main
     while (end_blk === 0)
     begin
         // collect data for current data beat
-        current_write = blk_write_data[return`CYC_ACTUAL_TRANSFER] ;
-        wbm_low_level.wbm_write(current_write, return) ;
+        current_write = blk_write_data[return_type`CYC_ACTUAL_TRANSFER] ;
+        wbm_low_level.wbm_write(current_write, return_type) ;
 
         // check result of write operation
         // check for severe test error
-        if (return`TB_ERROR_BIT !== 0)
+        if (return_type`TB_ERROR_BIT !== 0)
         begin
            @(posedge CLK_I) ;
            wbm_low_level.end_cycle ;
            disable main ;
         end
 
-        // slave returned error or error signal had invalid value
-        if (return`CYC_ERR !== 0)
+        // slave return_typeed error or error signal had invalid value
+        if (return_type`CYC_ERR !== 0)
             end_blk = 1 ;
 
         if (
-            (return`CYC_RTY !== 0) && (return`CYC_RTY !== 1) ||
-            (return`CYC_ACK !== 0) && (return`CYC_ACK !== 1) ||
-            (return`CYC_ERR !== 0) && (return`CYC_ERR !== 1)
+            (return_type`CYC_RTY !== 0) && (return_type`CYC_RTY !== 1) ||
+            (return_type`CYC_ACK !== 0) && (return_type`CYC_ACK !== 1) ||
+            (return_type`CYC_ERR !== 0) && (return_type`CYC_ERR !== 1)
            )
         begin
             end_blk = 1 ;
             $display("*E, at least one slave response signal was invalid when cycle finished! Routine wb_block_write, Time %t ", $time) ;
-            $display("ACK = %b \t RTY_O = %b \t ERR_O = %b \t", return`CYC_ACK, return`CYC_RTY, return`CYC_ERR) ;
+            $display("ACK = %b \t RTY_O = %b \t ERR_O = %b \t", return_type`CYC_ACK, return_type`CYC_RTY, return_type`CYC_ERR) ;
         end
 
-        if ((return`CYC_RTY === 1) && (write_flags`WB_TRANSFER_AUTO_RTY !== 1))
+        if ((return_type`CYC_RTY === 1) && (write_flags`WB_TRANSFER_AUTO_RTY !== 1))
             end_blk = 1 ;
 
-        if ((return`CYC_RTY === 1) && (write_flags`WB_TRANSFER_AUTO_RTY === 1))
+        if ((return_type`CYC_RTY === 1) && (write_flags`WB_TRANSFER_AUTO_RTY === 1))
         begin
             if ( rty_count === `WB_TB_MAX_RTY )
             begin
@@ -589,11 +589,11 @@ begin:main
             rty_count = 0 ;
 
         // check if slave responded at all
-        if (return`CYC_RESPONSE === 0)
+        if (return_type`CYC_RESPONSE === 0)
             end_blk = 1 ;
 
         // check if all intended data was transfered
-        if (return`CYC_ACTUAL_TRANSFER === write_flags`WB_TRANSFER_SIZE)
+        if (return_type`CYC_ACTUAL_TRANSFER === write_flags`WB_TRANSFER_SIZE)
             end_blk = 1 ;
 
         // insert subsequent wait cycles, if transfer is supposed to continue
@@ -607,7 +607,7 @@ begin:main
             end
         end
 
-        if ( (end_blk === 0) && (return`CYC_RTY === 1) )
+        if ( (end_blk === 0) && (return_type`CYC_RTY === 1) )
         begin
             wbm_low_level.end_cycle ;
             @(posedge CLK_I) ;
@@ -615,7 +615,7 @@ begin:main
             if ( ok !== 1 )
             begin
                 $display("*E, Failed to initialize cycle! Routine wb_block_write, Time %t ", $time) ;
-                return`TB_ERROR_BIT = 1'b1 ;
+                return_type`TB_ERROR_BIT = 1'b1 ;
                 end_blk = 1 ;
             end
         end
@@ -628,7 +628,7 @@ endtask //wb_block_write
 
 task wb_block_read ;
     input  `WB_TRANSFER_FLAGS      read_flags ;
-    inout `READ_RETURN_TYPE       return ;
+    inout `READ_RETURN_TYPE       return_type ;
 
     reg in_use ;
     reg `READ_STIM_TYPE  current_read ;
@@ -640,7 +640,7 @@ task wb_block_read ;
     integer transfered ;
 begin:main
 
-    return`CYC_ACTUAL_TRANSFER = 0 ;
+    return_type`CYC_ACTUAL_TRANSFER = 0 ;
     transfered = 0 ;
     rty_count = 0 ;
 
@@ -648,14 +648,14 @@ begin:main
     if ( in_use === 1 )
     begin
         $display("*E, wb_block_read routine re-entered! Time %t ", $time) ;
-        return`TB_ERROR_BIT = 1'b1 ;
+        return_type`TB_ERROR_BIT = 1'b1 ;
         disable main ;
     end
 
     if (read_flags`WB_TRANSFER_SIZE > `MAX_BLK_SIZE)
     begin
         $display("*E, number of transfers passed to wb_block_read routine exceeds defined maximum transaction length! Time %t", $time) ;
-        return`TB_ERROR_BIT = 1'b1 ;
+        return_type`TB_ERROR_BIT = 1'b1 ;
         disable main ;
     end
 
@@ -668,7 +668,7 @@ begin:main
     if ( ok !== 1 )
     begin
         $display("*E, Failed to initialize cycle! Routine wb_block_read, Time %t ", $time) ;
-        return`TB_ERROR_BIT = 1'b1 ;
+        return_type`TB_ERROR_BIT = 1'b1 ;
         disable main ;
     end
 
@@ -684,44 +684,44 @@ begin:main
     while (end_blk === 0)
     begin
         // collect data for current data beat
-        current_read = blk_read_data_in[return`CYC_ACTUAL_TRANSFER] ;
+        current_read = blk_read_data_in[return_type`CYC_ACTUAL_TRANSFER] ;
 
-        wbm_low_level.wbm_read(current_read, return) ;
+        wbm_low_level.wbm_read(current_read, return_type) ;
 
-        if ( transfered !== return`CYC_ACTUAL_TRANSFER )
+        if ( transfered !== return_type`CYC_ACTUAL_TRANSFER )
         begin
-            blk_read_data_out[transfered] = return ;
-            transfered = return`CYC_ACTUAL_TRANSFER ;
+            blk_read_data_out[transfered] = return_type ;
+            transfered = return_type`CYC_ACTUAL_TRANSFER ;
         end
 
         // check result of read operation
         // check for severe test error
-        if (return`TB_ERROR_BIT !== 0)
+        if (return_type`TB_ERROR_BIT !== 0)
         begin
            @(posedge CLK_I) ;
            wbm_low_level.end_cycle ;
            disable main ;
         end
 
-        // slave returned error or error signal had invalid value
-        if (return`CYC_ERR !== 0)
+        // slave return_typeed error or error signal had invalid value
+        if (return_type`CYC_ERR !== 0)
             end_blk = 1 ;
 
         if (
-            (return`CYC_RTY !== 0) && (return`CYC_RTY !== 1) ||
-            (return`CYC_ACK !== 0) && (return`CYC_ACK !== 1) ||
-            (return`CYC_ERR !== 0) && (return`CYC_ERR !== 1)
+            (return_type`CYC_RTY !== 0) && (return_type`CYC_RTY !== 1) ||
+            (return_type`CYC_ACK !== 0) && (return_type`CYC_ACK !== 1) ||
+            (return_type`CYC_ERR !== 0) && (return_type`CYC_ERR !== 1)
            )
         begin
             end_blk = 1 ;
             $display("*E, at least one slave response signal was invalid when cycle finished! Routine wb_block_read, Time %t ", $time) ;
-            $display("ACK = %b \t RTY_O = %b \t ERR_O = %b \t", return`CYC_ACK, return`CYC_RTY, return`CYC_ERR) ;
+            $display("ACK = %b \t RTY_O = %b \t ERR_O = %b \t", return_type`CYC_ACK, return_type`CYC_RTY, return_type`CYC_ERR) ;
         end
 
-        if ((return`CYC_RTY === 1) && (read_flags`WB_TRANSFER_AUTO_RTY !== 1))
+        if ((return_type`CYC_RTY === 1) && (read_flags`WB_TRANSFER_AUTO_RTY !== 1))
             end_blk = 1 ;
 
-        if ((return`CYC_RTY === 1) && (read_flags`WB_TRANSFER_AUTO_RTY === 1))
+        if ((return_type`CYC_RTY === 1) && (read_flags`WB_TRANSFER_AUTO_RTY === 1))
         begin
             if ( rty_count === `WB_TB_MAX_RTY )
             begin
@@ -737,11 +737,11 @@ begin:main
             rty_count = 0 ;
 
         // check if slave responded at all
-        if (return`CYC_RESPONSE === 0)
+        if (return_type`CYC_RESPONSE === 0)
             end_blk = 1 ;
 
         // check if all intended data was transfered
-        if (return`CYC_ACTUAL_TRANSFER === read_flags`WB_TRANSFER_SIZE)
+        if (return_type`CYC_ACTUAL_TRANSFER === read_flags`WB_TRANSFER_SIZE)
             end_blk = 1 ;
 
         // insert subsequent wait cycles, if transfer is supposed to continue
@@ -755,7 +755,7 @@ begin:main
             end
         end
 
-        if ( (end_blk === 0) && (return`CYC_RTY === 1) )
+        if ( (end_blk === 0) && (return_type`CYC_RTY === 1) )
         begin
             wbm_low_level.end_cycle ;
             @(posedge CLK_I) ;
@@ -763,7 +763,7 @@ begin:main
             if ( ok !== 1 )
             begin
                 $display("*E, Failed to initialize cycle! Routine wb_block_read, Time %t ", $time) ;
-                return`TB_ERROR_BIT = 1'b1 ;
+                return_type`TB_ERROR_BIT = 1'b1 ;
                 end_blk = 1 ;
             end
         end
