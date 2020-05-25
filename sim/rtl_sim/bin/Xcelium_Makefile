@@ -29,7 +29,24 @@ $(LOG_DIR):
 
 
 %_tb: $(LOG_DIR)
-	xrun -sv -clean $(WORK_SOURCES) $(TEST_DIR)/$@.sv -incdir $(WORK_DIR) -incdir $(TEST_DIR) -xmlibdirname $@_dir > $@.log
+	@echo "		"
+	@echo "Running $@...	"
+	@echo "		"	
+	xrun -sv -clean -elaborate $(WORK_SOURCES) $(TEST_DIR)/$@.sv -incdir $(WORK_DIR) -incdir $(TEST_DIR) -xmlibdirname $@_dir > $@_compile.log
+	@echo "		"		
+	xrun -R -xmlibdirname $@_dir > $@_run.log
+	@echo "		"	
+	@echo "Compile log at $@_compile.log"
+	@echo "Simulation log at $@_run.log"	
+	@echo "		"	
+
+%_tb_gui: $(LOG_DIR)
+	@echo "		"
+	@echo "Running $@...	"
+	@echo "		"
+	xrun -sv -clean -elaborate $(WORK_SOURCES) $(TEST_DIR)/$(@:_gui=).sv -incdir $(WORK_DIR) -incdir $(TEST_DIR) -xmlibdirname $@_dir -lwdgen -access +rwc 
+	@echo "		"		
+	xrun -R -xmlibdirname $@_dir -gui -indago 
 
 
 simulate: $(TESTBENCHES) 
