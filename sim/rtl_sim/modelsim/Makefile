@@ -76,9 +76,6 @@ all: simulate
 
 work_library: $(LIB_WORK) $(WORK_OBJECTS)
 
-#./$(LIB_WORK)/%/_primary.dat: $(WORK_DIR)/%.v
-#	@echo $@
-#	$(V)$(VLOG) -work $(LIB_WORK) +incdir+$(WORK_DIR) -nocovercells -O0 $^
 $(WORK_OBJECTS): $(WORK_SOURCES)
 	$(V)$(VLOG) -work $(LIB_WORK) +incdir+$(WORK_DIR) -nocovercells -O0 $?
 	
@@ -104,10 +101,10 @@ TESTBENCH_SOURCES = $(shell ls $(TEST_DIR)/*_tb.sv)
 TESTBENCHES = $(shell echo $(TESTBENCH_SOURCES) | sed 's:$(TEST_DIR)/::g' | sed 's:\.sv::g')
 
 ifeq ($(VCD), 1)
-CLI_STARTUP_FILE = $(BIN_DIR)/vcd_startup.do
+CLI_STARTUP_FILE = vcd_startup.do
 VCD_DIR = $(OUT_DIR)
 else
-CLI_STARTUP_FILE = $(BIN_DIR)/cli_startup.do
+CLI_STARTUP_FILE = cli_startup.do
 endif
 
 $(OUT_DIR):
@@ -126,7 +123,7 @@ modelsim: compile
 	$(V)$(VSIM) -lib $(LIB_WORK)
 
 %_tb_gui: $(LOG_DIR) compile
-	$(V)$(VSIM) -L $(RUN_DIR)/$(LIB_WORK) -do $(BIN_DIR)/gui_startup.do $(LIB_TEST).$(shell echo $@ | sed 's:_gui::')
+	$(V)$(VSIM) -L $(RUN_DIR)/$(LIB_WORK) -do gui_startup.do $(LIB_TEST).$(shell echo $@ | sed 's:_gui::')
 
 print_work_sources:
 	$(V)@echo $(WORK_SOURCES)

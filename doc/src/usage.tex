@@ -63,7 +63,7 @@
         .3 rtl\_sim. 
         .4 bin. 
         .4 log. 
-        .4 run. 
+        .4 modelsim. 
         .2 sw. 
         .3 example. 
         .2 syn. 
@@ -78,9 +78,9 @@
     \item[\texttt{doc}] - documentation files,
     \item[\texttt{doc/src}] - documentation \LaTeX sources,
     \item[\texttt{rtl/verilog}] - ip core verilog sources,
-    \item[\texttt{sim/rtl\_sim/bin}] - simulation makefile and modelsim scripts,
+    \item[\texttt{sim/rtl\_sim/bin}] - binaries required for simulation,
     \item[\texttt{sim/rtl\_sim/log}] - log files created during simulation,
-    \item[\texttt{sim/rtl\_sim/run}] - simulation execution directory,
+    \item[\texttt{sim/rtl\_sim/modelsim}] - modelsim simulation specific files and makefile,
     \item[\texttt{sw/example}] - baremetal example application for or1k,
     \item[\texttt{syn/quartus/bin}] - synthesis makefile and scripts for quartus example project,
     \item[\texttt{syn/quartus/run}] - synthesis execution directory,
@@ -90,7 +90,7 @@
     \subsection{Simulation}
     \label{sec:simulation}
     
-    To start simulation just enter to \path{sim/rtl_sim/run} directory and type \texttt{make}:
+    To start simulation just enter to \path{sim/rtl_sim/modelsim} directory and type \texttt{make}:
     \begin{verbatim}
 #> cd sim/rtl_sim/run
 #> make

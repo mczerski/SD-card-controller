@@ -49,6 +49,7 @@
 `include "wb_model_defines.h"
 `include "sd_defines.h"
 
+`define BIN_DIR "../bin"
 `define LOG_DIR "../log"
 
 `define SD_BASE 32'hd0000000
@@ -74,8 +75,8 @@
 `define CWD 16'h40
 
 module sd_controller_top_tb
-#(parameter ramdisk="../bin/ramdisk2.hex",
-  parameter sd_model_log_file="../log/sd_model.log",
+#(parameter ramdisk={`BIN_DIR, "/ramdisk2.hex"},
+  parameter sd_model_log_file={`LOG_DIR, "/sd_model.log"},
   parameter wb_m_mon_log_file={`LOG_DIR, "/sdc_tb_wb_m_mon.log"},
   parameter wb_s_mon_log_file={`LOG_DIR, "/sdc_tb_wb_s_mon.log"},
   parameter wb_memory_file={`BIN_DIR, "/wb_memory.txt"})

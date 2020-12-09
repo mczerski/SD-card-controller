@@ -1,8 +1,0 @@
-/sim/rtl_sim/log
-/sim/rtl_sim/run/modelsim.ini
-/sim/rtl_sim/run/test
-/sim/rtl_sim/run/transcript
-/sim/rtl_sim/run/work
-/syn/quartus/run/db
-/syn/quartus/run/incremental_db
-/syn/quartus/run/sdc_controller.*
