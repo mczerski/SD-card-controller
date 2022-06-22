@@ -53,9 +53,9 @@
     \end{figure}
     Wishbone slave interface provides access from CPU to all IP core registers (see \ref{sec:regs}). It must
     be connected to CPU data master. Wishbone master interface provides access for DMA engine to RAM (see \ref{sec:dma}). 
-    It must be connected to RAM memory slave. Interrupts signals provides mechanism to notify the CPU about finished transactions (data and command tranfers).
-    They are not necesary for proper operation (if You don't want to use interrupts). MMC/SD card interface provides communication with external MMC/SD cards.
-    It must be connected to external pins of the FPGA wich are connected to MMC/SD card connector. Because those external pins are bidirectional, IP core
+    It must be connected to RAM memory slave. Interrupts signals provides mechanism to notify the CPU about finished transactions (data and command transfers).
+    They are not necessary for proper operation (if You don't want to use interrupts). MMC/SD card interface provides communication with external MMC/SD cards.
+    It must be connected to external pins of the FPGA which are connected to MMC/SD card connector. Because those external pins are bidirectional, IP core
     provides inputs, outputs and output enables for these signals.
     Table \ref{tab:singals} presents all IP core signals with descriptions.
     
@@ -111,7 +111,7 @@
     IP core needs two clock sources. First one is for Wishbone bus operation (\texttt{wb\_clk\_i}). There are no constraints for this clock. 
     Second one is for MMC/SD interface operation (\texttt{sd\_clk\_i\_pad}). 
     \texttt{sd\_clk\_i\_pad} is used to drive \texttt{sd\_clk\_o\_pad} output, which is the external MMC/SD card clock source, through internal
-    clock devider. This clock devider is able to devide \texttt{sd\_clk\_i\_pad} clock by 2, 4, 6, 8, ... etc. (2*n where n = [1..256]).
+    clock divider. This clock divider is able to divide \texttt{sd\_clk\_i\_pad} clock by 2, 4, 6, 8, ... etc. (2*n where n = [1..256]).
     \texttt{sd\_clk\_o\_pad} clock frequency depends on MMC/SD specification. To fully utilize the transmission bandwidth \texttt{sd\_clk\_o\_pad}
     should be able to perform at 25MHz frequency which imposes constraint of minimum 50MHz on \texttt{sd\_clk\_i\_pad} clock. 
     Clock inputs \texttt{wb\_clk\_i} and \texttt{sd\_clk\_i\_pad} can be sourced by the same signal.
@@ -120,9 +120,9 @@
     \label{sec:dma}
     
     DMA engine is used to lower the CPU usage during data transactions\footnote{Data transaction refers to any traffic on the data lines of MMC/SD card interface.}.
-    DMA starts its operation imidiately after succesful end of any read or write command transactions\footnote{Command transaction refers to any traffic on the command line.}
+    DMA starts its operation immediately after successful end of any read or write command transactions\footnote{Command transaction refers to any traffic on the command line.}
     \footnote{Read or write command refer to command with data payload such as \textit{block read}(CMD17) or \textit{block write}(CMD24).}.
-    During write transactions, data is fetched from RAM automatically, starting from known address. This addres has to be configured by the CPU before sending any write command. 
+    During write transactions, data is fetched from RAM automatically, starting from known address. This address has to be configured by the CPU before sending any write command. 
     Similarly, during read transactions, data is written to RAM automatically, starting from known address. 
     This address also has to be configured by the CPU before sending any read command. Because data transmission is half-duplex, 
     read and write addresses are placed in the same configuration register. Function of this register depends on the command to be sent.
@@ -130,8 +130,8 @@
     \subsection{Interrupt generation}
     \label{sec:interrupt}
     
-    Interrupts are useful when polling technique is not an option. There are two interrupt sources. One to notify the end of the commans transaction (\texttt{int\_cmd} signal) and
-    one to notify the end of the data transaction (\texttt{int\_data} signal). Both interrupts has active high logic. All events that triger each interrupts can be masked(see \ref{sec:regs})
+    Interrupts are useful when polling technique is not an option. There are two interrupt sources. One to notify the end of the command transaction (\texttt{int\_cmd} signal) and
+    one to notify the end of the data transaction (\texttt{int\_data} signal). Both interrupts has active high logic. All events that trigger each interrupts can be masked(see \ref{sec:regs})
     and therefore, do not participate in interrupt generation(see \ref{img:events}).
     \begin{figure}[H]
         \centering
@@ -146,8 +146,8 @@
 
     Command transaction end interrupt is driven by the command transaction events. The events are:
     \begin{description}
-    \item[completion] - transaction completed succesfuly,
-    \item[error] - transaction completed with error (one or more of the following events occured),
+    \item[completion] - transaction completed successfully,
+    \item[error] - transaction completed with error (one or more of the following events occurred),
     \item[timeout] - timeout error (the card did not respond in a timely fashion),
     \item[wrong crc] - crc check error (crc calculated from received response data did not match to the crc field of the response),
     \item[wrong index] - index check error (response consists of wrong index field value).
@@ -158,7 +158,7 @@
 
     Data transaction end interrupt is driven by the data transaction events. The events are:
     \begin{description}
-    \item[completion] - transaction completed succesfuly,
+    \item[completion] - transaction completed successfully,
     \item[wrong crc] - crc check error (in case of write transaction, crc received in response to write transaction was different than one calculated by the core; 
     in case of read transaction, crc calculated from received data did not match to the crc field of received data),
     \item[fifo error] - internal fifo error (in case of write transaction, tx fifo became empty before all data was send; in case of read transaction, rx fifo became
