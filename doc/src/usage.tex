@@ -81,7 +81,7 @@
     \item[\texttt{sim/rtl\_sim/bin}] - binaries required for simulation,
     \item[\texttt{sim/rtl\_sim/log}] - log files created during simulation,
     \item[\texttt{sim/rtl\_sim/modelsim}] - modelsim simulation specific files and makefile,
-    \item[\texttt{sw/example}] - baremetal example application for or1k,
+    \item[\texttt{sw/example}] - bare metal example application for or1k,
     \item[\texttt{syn/quartus/bin}] - synthesis makefile and scripts for quartus example project,
     \item[\texttt{syn/quartus/run}] - synthesis execution directory,
     \item[\texttt{syn/quartus/src}] - example project sources.
@@ -135,7 +135,7 @@ some compilation output
     The default simulation target is to run all testbenches from \path{bench/verilog} directory that ends with \path{_.sv}. Other simulation targets are:
     \begin{description}
     \item[\texttt{clean}] - remove all simulation output files,
-    \item[\texttt{print\_testbenches}] - lists all availible testbenches,
+    \item[\texttt{print\_testbenches}] - lists all available testbenches,
     \item[\texttt{modelsim}] - compiles all sources and launches modelsim (see \ref{sec:sim_make_var}),
     \item[\texttt{*\_tb}] - compiles and executes given testbench. All items listed by the \path{print_testbenches} target can be executed this way,
     \item[\texttt{*\_tb\_gui}] - same as \path{*_tb} target, only instead of executing simulation in command-line, launches modelsim.

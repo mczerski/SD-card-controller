@@ -61,7 +61,7 @@
                 \texttt{data\_timeout} & \texttt{0x18} & RW & data xfer timeout configuration \\ \hline
                 \texttt{control} & \texttt{0x1C} & RW & IP core control settings \\ \hline
                 \texttt{cmd\_timeout} & \texttt{0x20} & RW & command xfer timeout configuration \\ \hline
-                \texttt{clock\_devider} & \texttt{0x24} & RW & MMC/SD interface clock devider \\ \hline
+                \texttt{clock\_divider} & \texttt{0x24} & RW & MMC/SD interface clock divider \\ \hline
                 \texttt{reset} & \texttt{0x28} & RW & software reset \\ \hline
                 \texttt{voltage} & \texttt{0x2C} & R & power control information \\ \hline
                 \texttt{capabilities} & \texttt{0x30} & R & capabilities information \\ \hline
@@ -120,7 +120,7 @@
     \subsubsection{Response register 0-3}
     \label{sec:resp_reg}
     
-    Response registers 0-3 contains response data bits after end of succesful command transaction (if bits 1-0 of command register were configured to wait for response).
+    Response registers 0-3 contains response data bits after end of successful command transaction (if bits 1-0 of command register were configured to wait for response).
     
     \begin{table}[H]
     \caption{Response register 0-3}
@@ -136,7 +136,7 @@
     \label{sec:data_timeout_reg}
     
     Data timeout register configures data transaction watchdog counter. If any data transaction will last longer than configured timeout, 
-    interrupt will be generated. Value in timeout register represents the number of \texttt{sd\_clk\_o\_pad} clock cyckles. 
+    interrupt will be generated. Value in timeout register represents the number of \texttt{sd\_clk\_o\_pad} clock cycles. 
     Register value is calculated by following formula:
     \begin{equation}
     REG = \frac{timeout[s] * frequency_{\texttt{sd\_clk\_i\_pad}}[Hz]}{(2*(\texttt{clock\_devider} + 1))}
@@ -171,7 +171,7 @@
     \label{sec:timeout_reg}
     
     Command timeout register configures command transaction watchdog counter. If any command transaction will last longer than configured timeout, 
-    interrupt will be generated. Value in timeout register represents the number of \texttt{sd\_clk\_o\_pad} clock cyckles. 
+    interrupt will be generated. Value in timeout register represents the number of \texttt{sd\_clk\_o\_pad} clock cycles. 
     Register value is calculated by following formula:
     \begin{equation}
     REG = \frac{timeout[s] * frequency_{\texttt{sd\_clk\_i\_pad}}[Hz]}{(2*(\texttt{clock\_devider} + 1))}
@@ -188,21 +188,21 @@
         \label{tab:timeout_reg}
     \end{table}
     
-    \subsubsection{Clock devider register}
+    \subsubsection{Clock divider register}
     \label{sec:div_reg}
     
-    Clock devider register control division of \texttt{sd\_clk\_i\_pad} signal frequency. Output of this devider is routed to MMC/SD interface clock domain.
+    Clock divider register control division of \texttt{sd\_clk\_i\_pad} signal frequency. Output of this divider is routed to MMC/SD interface clock domain.
     Register value is calculated by following formula:
     \begin{equation}
     REG = \frac{frequency_{\texttt{sd\_clk\_i\_pad}}[Hz]}{2*frequency_{\texttt{sd\_clk\_i\_pad}}[Hz]} - 1
     \end{equation} 
     
     \begin{table}[H]
-    \caption{Clock devider register}
+    \caption{Clock divider register}
         \begin{tabular}{m{1.3cm}|m{2cm}|m{1cm}|m{8cm}}
                 \rowcolor[gray]{0.7} bit \# & reset value & access & description \\ \hline \hline
                 \texttt{[31:8]} & & & reserved \\ \hline
-                \texttt{[7:0]} & \texttt{0x0} & RW & devider ratio \\ \hline
+                \texttt{[7:0]} & \texttt{0x0} & RW & divider ratio \\ \hline
                 \hline
         \end{tabular}
         \label{tab:div_reg}
@@ -266,7 +266,7 @@
                 \texttt{[3]} & \texttt{0x0} & RW & crc error event \\ \hline
                 \texttt{[2]} & \texttt{0x0} & RW & timeout error event \\ \hline
                 \texttt{[1]} & \texttt{0x0} & RW & error event (logic sum of all error events) \\ \hline
-                \texttt{[0]} & \texttt{0x0} & RW & command transaction succesful completion event \\ \hline
+                \texttt{[0]} & \texttt{0x0} & RW & command transaction successful completion event \\ \hline
                 \hline
         \end{tabular}
         \label{tab:cmd_evt_reg}
@@ -286,7 +286,7 @@
                 \texttt{[3]} & \texttt{0x0} & RW & enable crc error event \\ \hline
                 \texttt{[2]} & \texttt{0x0} & RW & enable timeout error event \\ \hline
                 \texttt{[1]} & \texttt{0x0} & RW & enable error event \\ \hline
-                \texttt{[0]} & \texttt{0x0} & RW & enable command transaction succesful completion event \\ \hline
+                \texttt{[0]} & \texttt{0x0} & RW & enable command transaction successful completion event \\ \hline
                 \hline
         \end{tabular}
         \label{tab:cmd_ena_reg}
@@ -306,7 +306,7 @@
                 \texttt{[3]} & \texttt{0x0} & RW & fifo error event \\ \hline
                 \texttt{[2]} & \texttt{0x0} & RW & crc error event \\ \hline
                 \texttt{[1]} & \texttt{0x0} & RW & error event (logic sum of all error events) \\ \hline
-                \texttt{[0]} & \texttt{0x0} & RW & data transaction succesful completion event \\ \hline
+                \texttt{[0]} & \texttt{0x0} & RW & data transaction successful completion event \\ \hline
                 \hline
         \end{tabular}
         \label{tab:data_evt_reg}
@@ -325,7 +325,7 @@
                 \texttt{[3]} & \texttt{0x0} & RW & enable fifo error event \\ \hline
                 \texttt{[2]} & \texttt{0x0} & RW & enable crc error event \\ \hline
                 \texttt{[1]} & \texttt{0x0} & RW & enable error event \\ \hline
-                \texttt{[0]} & \texttt{0x0} & RW & enable data transaction succesful completion event \\ \hline
+                \texttt{[0]} & \texttt{0x0} & RW & enable data transaction successful completion event \\ \hline
                 \hline
         \end{tabular}
         \label{tab:data_ena_reg}
@@ -374,8 +374,8 @@
     \subsubsection{DMA destination / source register}
     \label{sec:dst_src_reg}
     
-    This registers configures the DMA source / destination address. For write transactions, this address points to the begining of data block to be sent.
-    For read transactions, this address points to the begining of data block to be written.
+    This registers configures the DMA source / destination address. For write transactions, this address points to the beginning of data block to be sent.
+    For read transactions, this address points to the beginning of data block to be written.
     
     \begin{table}[H]
     \caption{DMA destination / source register}
