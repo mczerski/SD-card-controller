@@ -1,0 +1,68 @@
+######################################################################
+####                                                              ####
+#### WISHBONE SD Card Controller IP Core                          ####
+####                                                              ####
+#### Xcelium Makefile                                             ####
+####								  ####
+######################################################################
+
+
+RUN_DIR = $(shell pwd)
+BIN_DIR = $(shell pwd)/../../bin
+LOG_DIR = $(shell pwd)/../../log
+
+WORK_DIR = ../../../../rtl/verilog
+TEST_DIR = ../../../../bench/verilog
+WORK_SOURCES = $(wildcard $(WORK_DIR)/*.v)
+TEST_SOURCES = $(wildcard $(TEST_DIR)/*.sv) $(wildcard $(TEST_DIR)/*.v)
+
+
+all: simulate
+
+
+TESTBENCH_SOURCES = $(shell ls $(TEST_DIR)/*_tb.sv)
+TESTBENCHES = $(shell echo $(TESTBENCH_SOURCES) | sed 's:$(TEST_DIR)/::g' | sed 's:\.sv::g')
+
+
+$(LOG_DIR):
+	mkdir $@
+
+
+%_tb: $(LOG_DIR)
+	@echo "		"
+	@echo "Running $@...	"
+	@echo "		"	
+	xrun -sv -clean -elaborate $(WORK_SOURCES) $(TEST_DIR)/$@.sv -incdir $(WORK_DIR) -incdir $(TEST_DIR) -xmlibdirname $@_dir > $@_compile.log
+	@echo "		"		
+	xrun -R -xmlibdirname $@_dir > $@_run.log
+	@echo "		"	
+	@echo "Compile log at $@_compile.log"
+	@echo "Simulation log at $@_run.log"	
+	@echo "		"	
+
+%_tb_gui: $(LOG_DIR)
+	@echo "		"
+	@echo "Running $@...	"
+	@echo "		"
+	xrun -sv -clean -elaborate $(WORK_SOURCES) $(TEST_DIR)/$(@:_gui=).sv -incdir $(WORK_DIR) -incdir $(TEST_DIR) -xmlibdirname $@_dir -lwdgen -access +rwc 
+	@echo "		"		
+	xrun -R -xmlibdirname $@_dir -gui -indago 
+
+
+simulate: $(TESTBENCHES) 
+
+
+print_work_sources:
+	echo $(WORK_SOURCES)
+
+print_test_sources:
+	echo $(TEST_SOURCES)
+	
+print_testbenches:
+	echo $(TESTBENCHES)
+
+clean:
+	echo "Removing ..."
+	rm -rfv *.log
+	rm -rfv *_dir
+	rm -rfv $(LOG_DIR)

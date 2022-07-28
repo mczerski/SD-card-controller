@@ -1,0 +1,62 @@
+SD Card Controller on Xcelium - 
+
+Directory Structure:
+	. RTL files and Testbench sources:
+	. rtl/verilog      		IP core Verilog sources
+	. bench/verilog    		Verilog TB files
+	. The TOP level    		test is bench/verilog/sd_controller_top_tb.sv which utilizes the sdModel.v. The corresponding RTL file is rtl/verilog/sdc_controller.v
+	. sim/rtl_sim/log  		Log dir created during simulation
+	. sim/rtl_sim/run/xcelium_run   simulation run directory for Xcelium
+	. sim/rtl_sim/bin  		contains Xcelium_Makefile
+
+Changes to get the files to run and pass on Xcelium :
+	
+	. In bench/verilog/wb_master_behavioral.v, replace 'return' (match exact case and word) with 'return_type'. As per LRM, 'return' is a SV keyword and cannot be used as a variable name.
+	  [Note  : A request to make this change to Github Repo for SD Card open source code has been submitted. Check latest file from Github for changes.]
+
+	. In bench/verilog/sd_controller_top_tb.sv, 
+		. add `include of all the *.v files (under bench/verilog/) -> sdModel.v, wb_master_behavioral.v, wb_slave_behavioral.v, wb_bus_mon.v, wb_master32.v
+		. change the path as -> `define LOG_DIR "../../log", parameter ramdisk="../../bin/ramdisk2.hex", parameter sd_model_log_file="../../log/sd_model.log", parameter wb_memory_file="../../bin/wb_memory.txt"
+
+Simulation: To start simulation and run all the tests with Xcelium,  
+
+#> cd sim/rtl_sim/run/xcelium_run
+
+#> make
+	This compiles and runs all the tests and creates separate snapshot directories(*_tb_dir) as well as logs for every test. The logs can be found under *_tb_compile.log and *_tb_run.log
+
+	Every TB is self-checking with assertions. If the run log displays -
+	# testbench name starts..
+	# testbench name finish..
+	without any assertion in between errors, the test passes. 
+
+#> make *_tb
+	compiles and executes given testbench. Refers to any individual testbench as listed by print_testbenches target. Example for testbench_name  : sd_controller_top_tb
+
+#> make *_tb_gui
+	same as *_tb but opens Indago GUI for interactive debug for the given testbench
+
+#> make clean
+	Removes all log files and snapshots (*_tb_dir)
+
+#> make print_testbenches
+	Lists all testbenches.
+
+
+Additional Info :
+
+EXAMPLE: To run sd_controller_top_tb as a standalone test using xrun commands  -
+
+#> cd sim/rtl_sim/
+
+#> mkdir log
+
+#> cd run/xcelium_run
+
+#> xrun -clean -elaborate -sv ../../../../rtl/verilog/*.v ../../../../bench/verilog/sd_controller_top_tb.sv -incdir ../../../../rtl/verilog/ -incdir ../../../../bench/verilog  -xmlibdirname sd_controller_top_tb_dir
+This compiles the TOP test and all RTL files and creates a snapshot using -xmlibdirname in the location specified. Creating a specific snapshot for every TB prevents overriding of the same xcelium.d for the tests. 
+
+#> xrun -R -xmlibdirname sd_controller_top_tb_dir
+This runs the specified test. Log information is stored in xrun.log
+
+
