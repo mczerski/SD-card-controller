@@ -899,5 +899,77 @@ void print_mmcinfo(struct mmc *mmc)
 	printf("Bus Width: %d-bit\n\r", mmc->bus_width);
 }
 
+static int mmc_write_blocks(struct mmc *mmc, int start, size_t blkcnt, const void*src)
+{
+	struct mmc_cmd cmd;
+	struct mmc_data data;
+	int timeout = 1000;
 
+	if ((start + blkcnt) > mmc->capacity / mmc->read_bl_len) {
+		printf("MMC: block number 0x%lx exceeds max(0x%lx)\n",
+			start + blkcnt, mmc->capacity / mmc->read_bl_len);
+		return 0;
+	}
+
+	if (blkcnt > 1)
+		cmd.cmdidx = MMC_CMD_WRITE_MULTIPLE_BLOCK;
+	else
+		cmd.cmdidx = MMC_CMD_WRITE_SINGLE_BLOCK;
+
+	if (mmc->high_capacity)
+		cmd.cmdarg = start;
+	else
+		cmd.cmdarg = start * mmc->write_bl_len;
+
+	cmd.resp_type = MMC_RSP_R1;
+
+	data.src = src;
+	data.blocks = blkcnt;
+	data.blocksize = mmc->write_bl_len;
+	data.flags = MMC_DATA_WRITE;
+
+	if (mmc_send_cmd(mmc, &cmd, &data)) {
+		printf("mmc write failed\n");
+		return 0;
+	}
+
+	
+	if ( blkcnt > 1) {
+		cmd.cmdidx = MMC_CMD_STOP_TRANSMISSION;
+		cmd.cmdarg = 0;
+		cmd.resp_type = MMC_RSP_R1b;
+		if (mmc_send_cmd(mmc, &cmd, NULL)) {
+			printf("mmc fail to send stop cmd\n");
+			return 0;
+		}
+	}
+
+	/* Waiting for the ready status */
+	if (mmc_send_status(mmc, timeout))
+		return 0;
+
+	return blkcnt;
+}
+
+size_t mmc_bwrite(struct mmc *mmc, int start, size_t blkcnt, const void*src)
+{
+	size_t cur, blocks_todo = blkcnt;
+
+	if (!mmc)
+		return 0;
+
+	if (mmc_set_blocklen(mmc, mmc->write_bl_len))
+		return 0;
+
+	do {
+		cur = (blocks_todo > mmc->b_max) ?  mmc->b_max : blocks_todo;
+		if(mmc_write_blocks(mmc, start, cur, src) != cur)
+			return 0;
+		blocks_todo -= cur;
+		start += cur;
+		src += cur * mmc->write_bl_len;
+	} while (blocks_todo > 0);
+
+	return blkcnt;
+}
 
