@@ -120,8 +120,8 @@ module generic_dpram(
 	input           rce;   // read port chip enable, active high
 	input           oe;	   // output enable, active high
 	input  [aw-1:0] raddr; // read address
-	output [dw-1:0] dout;  // data output
-
+	//output [dw-1:0] dout;  // data output
+    output reg [dw-1:0] dout;//will test
 	// write port
 	input          wclk;  // write clock, rising edge trigger
 	input          wrst;  // write port reset, active high
@@ -141,16 +141,24 @@ module generic_dpram(
 	// This code has been tested using LeonardoSpectrum and Synplicity.
 	// The code correctly instantiates Altera EABs and Xilinx BlockRAMs.
 	//
-	reg [dw-1:0] mem [(1<<aw) -1:0]; // instantiate memory
+	  // (* ram_style="block" *)
+	    reg [dw-1:0] mem [(1<<aw) -1:0]; // instantiate memory
 	reg [aw-1:0] ra;                 // register read address
 
 	// read operation
+	/*
 	always @(posedge rclk)
 	  if (rce)
 	    ra <= raddr;
 
 	assign dout = mem[ra];
-
+   */
+   //will test
+   always @(posedge rclk)
+	  if (rce)
+	    dout <= mem[raddr];
+   
+   
 	// write operation
 	always@(posedge wclk)
 		if (we && wce)
